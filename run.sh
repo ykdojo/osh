@@ -4,7 +4,7 @@
 source venv/bin/activate
 
 # Install portaudio with Homebrew if needed
-brew install portaudio
+# brew install portaudio
 
 # Install requirements
 pip install -r requirements.txt
