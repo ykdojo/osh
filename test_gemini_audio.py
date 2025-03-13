@@ -11,6 +11,45 @@ import google.generativeai as genai
 # Load environment variables from .env file
 load_dotenv()
 
+def transcribe_audio_data(audio_data):
+    """
+    Transcribe audio data using Gemini 2.0 Flash Thinking
+    
+    Args:
+        audio_data (bytes): Raw audio data in bytes
+        
+    Returns:
+        str: Transcription text or None if an error occurs
+    """
+    # Configure Gemini client - use GEMINI_API_KEY from .env file
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("Error: GEMINI_API_KEY not found in environment variables")
+        print("Please make sure you have a .env file with your GEMINI_API_KEY")
+        return None
+    
+    try:
+        # Configure Gemini API
+        genai.configure(api_key=api_key)
+        
+        # Initialize the model - using the same model as in app.py
+        model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
+        
+        # Create parts for the generation
+        audio_part = {"mime_type": "audio/mp3", "data": audio_data}
+        
+        # Define prompt
+        prompt = "Transcribe this audio word for word only. No introduction, no description, just the exact transcription of any speech."
+        
+        # Generate content
+        response = model.generate_content([prompt, audio_part])
+        
+        return response.text
+            
+    except Exception as e:
+        print(f"Error during transcription: {str(e)}")
+        return None
+
 def test_audio_with_gemini(audio_file_path=None):
     """Test audio processing with Gemini 2.0 Flash Thinking"""
     
@@ -23,42 +62,20 @@ def test_audio_with_gemini(audio_file_path=None):
         print(f"Error: Audio file '{audio_file_path}' not found.")
         return
     
-    # Configure Gemini client - use GEMINI_API_KEY from .env file
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY not found in environment variables")
-        print("Please make sure you have a .env file with your GEMINI_API_KEY")
-        return
+    # Read the audio file
+    print(f"Reading audio file: {audio_file_path}")
+    with open(audio_file_path, "rb") as f:
+        audio_data = f.read()
     
-    try:
-        # Configure Gemini API
-        genai.configure(api_key=api_key)
-        
-        # Initialize the model - using the same model as in app.py
-        model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
-        
-        # Read and prepare the audio file
-        print(f"Reading audio file: {audio_file_path}")
-        with open(audio_file_path, "rb") as f:
-            audio_data = f.read()
-        
-        # Create parts for the generation
-        audio_part = {"mime_type": "audio/mp3", "data": audio_data}
-        
-        # Define prompt
-        prompt = "Transcribe this audio word for word only. No introduction, no description, just the exact transcription of any speech."
-        
-        print("Sending request to Gemini 2.0 Flash Thinking...")
-        
-        # Generate content using the same approach as in app.py
-        response = model.generate_content([prompt, audio_part])
-        
-        # Print response
+    print("Sending request to Gemini 2.0 Flash Thinking...")
+    
+    # Use the transcription function
+    transcription = transcribe_audio_data(audio_data)
+    
+    # Print response
+    if transcription:
         print("\n--- Gemini Response ---")
-        print(response.text)
-            
-    except Exception as e:
-        print(f"Error: {str(e)}")
+        print(transcription)
 
 if __name__ == "__main__":
     # Use command line argument if provided, otherwise use default
