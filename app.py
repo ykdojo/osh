@@ -31,6 +31,10 @@ class GeminiApp(App):
         self.average_volume = 0
         self.pyaudio_instance = pyaudio.PyAudio()
         
+        # Get default input device info
+        self.input_device_index = self.pyaudio_instance.get_default_input_device_info()['index']
+        self.input_device_name = self.pyaudio_instance.get_device_info_by_index(self.input_device_index)['name']
+        
         # PyAudio stream configuration
         self.format = pyaudio.paInt16
         self.channels = 1
@@ -58,6 +62,7 @@ class GeminiApp(App):
             channels=self.channels,
             rate=self.rate,
             input=True,
+            input_device_index=self.input_device_index,
             frames_per_buffer=self.chunk
         )
         
@@ -123,6 +128,7 @@ class GeminiApp(App):
             volume_bar = '█' * min(40, max(1, self.average_volume // 100))
             
             status = f"🔴 RECORDING ({duration:.1f} seconds)\n"
+            status += f"Microphone: {self.input_device_name}\n"
             status += f"Audio Level: {self.average_volume} {volume_bar}\n"
             status += "Press Shift+Command+Z again to stop recording."
             
@@ -131,7 +137,7 @@ class GeminiApp(App):
             # Recording stopped, show results
             duration = len(self.audio_data) / (self.rate * self.channels)
             prompt = f"Recording finished - {duration:.1f} seconds captured"
-            response = f"Recording complete!\n\nAudio data captured: {len(self.audio_data)} samples\nDuration: {duration:.1f} seconds\nAverage volume: {self.average_volume}"
+            response = f"Recording complete!\n\nMicrophone: {self.input_device_name}\nAudio data captured: {len(self.audio_data)} samples\nDuration: {duration:.1f} seconds\nAverage volume: {self.average_volume}"
             
             response_widget.update(f"Prompt: {prompt}\n\nResponse:\n{response}")
         elif self.hotkey_pressed:
@@ -153,6 +159,26 @@ class GeminiApp(App):
 
     def on_mount(self) -> None:
         self.query_one("#response").styles.align = ("center", "middle")
+        
+        # Log available audio devices for debugging
+        devices = self.get_audio_devices()
+        print(f"Available audio input devices:")
+        for device in devices:
+            print(f"  - Index {device['index']}: {device['name']} (Channels: {device['channels']}, Rate: {device['sample_rate']})")
+    
+    def get_audio_devices(self):
+        """Get a list of all available audio input devices."""
+        devices = []
+        for i in range(self.pyaudio_instance.get_device_count()):
+            device_info = self.pyaudio_instance.get_device_info_by_index(i)
+            if device_info['maxInputChannels'] > 0:  # Input device
+                devices.append({
+                    'index': i,
+                    'name': device_info['name'],
+                    'channels': device_info['maxInputChannels'],
+                    'sample_rate': int(device_info['defaultSampleRate'])
+                })
+        return devices
     
     def on_unmount(self) -> None:
         """Clean up resources when the app exits."""
