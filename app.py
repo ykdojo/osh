@@ -115,6 +115,48 @@ class GeminiApp(App):
         self.hotkey_pressed = True
         self.refresh_response()
     
+    def on_type_hotkey_activated(self):
+        """Type predefined text at current cursor position."""
+        from type_text import type_text
+        
+        # Hard-coded message to type
+        message = "This is a predefined message typed by my app!"
+        
+        # Update UI to show countdown
+        self.call_from_thread(lambda: self._show_typing_countdown(message))
+        
+        # Run typing with countdown in a separate thread
+        def run_with_countdown():
+            # Give user time to position cursor
+            for i in range(5, 0, -1):
+                time.sleep(1)
+                # Update countdown in UI
+                self.call_from_thread(lambda i=i: self._update_typing_countdown(i))
+            
+            # Now type the text
+            type_text(message, delay=0.1)
+            
+            # Update UI when done
+            self.call_from_thread(lambda: self.query_one("#response").update(f"Finished typing message: {message}"))
+            
+        threading.Thread(target=run_with_countdown, daemon=True).start()
+    
+    def _show_typing_countdown(self, message):
+        """Show initial typing countdown message."""
+        self.query_one("#response").update(
+            f"Preparing to type: {message}\n\n"
+            f"Position your cursor where you want to type...\n"
+            f"Starting in 5 seconds..."
+        )
+    
+    def _update_typing_countdown(self, seconds_left):
+        """Update the countdown timer in the UI."""
+        response_widget = self.query_one("#response")
+        current_text = response_widget.renderable
+        updated_text = current_text.split("\n")[0:2]  # Keep the first two lines
+        updated_text.append(f"Starting in {seconds_left} seconds...")
+        response_widget.update("\n".join(updated_text))
+    
     def refresh_response(self):
         # Schedule this to run in the main thread since Textual is not thread-safe
         self.call_from_thread(self._refresh_response)
@@ -187,18 +229,21 @@ class GeminiApp(App):
         self.pyaudio_instance.terminate()
     
     def start_keyboard_listener(self):
-        # Define the hotkey combination (Shift+Command+Z on macOS)
-        COMBINATION = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('z')}
+        # Define the hotkey combinations
+        RECORD_COMBO = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('z')}
+        TYPE_COMBO = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('x')}
         current = set()
         
         def on_press(key):
-            if key in COMBINATION:
+            if key in RECORD_COMBO or key in TYPE_COMBO:
                 current.add(key)
-                if all(k in current for k in COMBINATION):
+                if all(k in current for k in RECORD_COMBO):
                     self.on_hotkey_activated()
+                elif all(k in current for k in TYPE_COMBO):
+                    self.on_type_hotkey_activated()
         
         def on_release(key):
-            if key in COMBINATION:
+            if key in RECORD_COMBO or key in TYPE_COMBO:
                 if key in current:
                     current.remove(key)
         
