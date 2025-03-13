@@ -79,7 +79,7 @@ class GeminiApp(App):
                 self.average_volume = audioop.rms(data, 2)  # 2 bytes per sample for paInt16
                 
                 # Update UI every 0.5 seconds
-                if len(self.audio_data) % (self.rate // 2) == 0:
+                if len(self.audio_data) % (self.chunk * (self.rate // self.chunk // 2)) == 0:
                     self.refresh_response()
         finally:
             stream.stop_stream()
