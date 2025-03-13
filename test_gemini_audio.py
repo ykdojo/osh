@@ -46,7 +46,7 @@ def test_audio_with_gemini(audio_file_path=None):
         audio_part = {"mime_type": "audio/mp3", "data": audio_data}
         
         # Define prompt
-        prompt = "Describe this audio in detail. What sounds do you hear? If there's speech, what is being said?"
+        prompt = "Transcribe this audio word for word only. No introduction, no description, just the exact transcription of any speech."
         
         print("Sending request to Gemini 2.0 Flash Thinking...")
         
