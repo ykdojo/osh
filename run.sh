@@ -9,5 +9,5 @@ source venv/bin/activate
 # Install requirements
 pip install -r requirements.txt
 
-# Run the application
-python app.py
+# Run the menu system
+python menu_system.py
