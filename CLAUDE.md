@@ -16,3 +16,10 @@
 ## Project Structure Notes
 - The menu system is in menu_system.py with main menu and submenus defined in the main() function
 - Functional menus should have their implementation in separate files (e.g., menu_four.py)
+
+## Design Preferences
+- Use subtle, muted colors rather than vibrant ones
+- Menu highlights: Use desaturated slate blue-gray tones, not bright blues
+- Text accents: Use muted amber/tan tones, not bright yellows
+- Minimalist approach: Make small, incremental changes and validate with user
+- When user says "remember stuff", update this CLAUDE.md file

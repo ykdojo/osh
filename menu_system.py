@@ -173,12 +173,12 @@ def main(stdscr):
         curses.use_default_colors()  # Use terminal's default colors
         
         # Init color pairs with subtle designer-friendly colors
-        # Light teal background with dark text for selected items
-        curses.init_pair(PAIR_SELECTED, 0, 123)  # Dark text on soft teal
-        # Warm gold for title text
-        curses.init_pair(PAIR_TITLE, 220, -1)    # Soft gold on default background
-        # Muted sage green for footer
-        curses.init_pair(PAIR_FOOTER, 108, -1)   # Soft sage green on default background
+        # Muted slate blue-gray background for selected items (less vibrant than pure blue)
+        curses.init_pair(PAIR_SELECTED, 0, 66)   # Dark text on muted slate blue-gray
+        # Soft amber (less yellow, more neutral) for title text
+        curses.init_pair(PAIR_TITLE, 180, -1)    # Muted amber on default background
+        # Very subtle sage green for footer
+        curses.init_pair(PAIR_FOOTER, 102, -1)   # Desaturated sage on default background
     
     # Create menu system
     menu_system = MenuSystem()
