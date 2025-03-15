@@ -18,6 +18,7 @@ class MenuSystem:
     def __init__(self):
         self.menus = {}
         self.current_menu = None
+        self._stdscr = None
     
     def add_menu(self, name, menu):
         self.menus[name] = menu
@@ -25,6 +26,9 @@ class MenuSystem:
             self.current_menu = name
     
     def draw_menu(self, stdscr):
+        # Store stdscr for use in other methods
+        self._stdscr = stdscr
+        
         # Clear screen
         stdscr.clear()
         h, w = stdscr.getmaxyx()
@@ -135,7 +139,18 @@ class MenuSystem:
         elif self.current_menu == "menu_voice":
             # Handle voice transcription functionality
             if selected_index == 0:
-                result = voice_transcription_functions.transcribe()
+                # Display recording screen
+                voice_transcription_functions.transcribe(self._stdscr)
+                
+                # In a real implementation, we would wait for the keyboard shortcut ⇧⌘Z
+                # For now, we'll just wait for any key press to "stop" recording
+                self._stdscr.nodelay(False)  # Make getch blocking
+                key = self._stdscr.getch()
+                self._stdscr.nodelay(True)   # Restore non-blocking mode
+                
+                # Stop recording and get result
+                voice_transcription_functions.is_recording = False
+                result = f"Voice transcribed from {voice_transcription_functions.current_mic}"
                 voice_transcription_functions.results.append(result)
             elif selected_index == 1:
                 self.current_menu = "main_menu"
@@ -150,7 +165,7 @@ class MenuSystem:
 def main(stdscr):
     # Set up curses
     curses.curs_set(0)  # Hide cursor
-    stdscr.timeout(100)  # Non-blocking input
+    stdscr.nodelay(True)  # Non-blocking input
     
     # Initialize colors if terminal supports them
     if curses.has_colors():
@@ -184,7 +199,7 @@ def main(stdscr):
     # Voice Transcription menu (former menu_four, now first)
     voice_menu = Menu("VOICE TRANSCRIPTION")
     voice_menu.items = [
-        "Transcribe",
+        "Start Transcribing (⇧⌘Z)",
         "Back to Main Menu"
     ]
     menu_system.add_menu("menu_voice", voice_menu)
