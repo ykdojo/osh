@@ -3,6 +3,11 @@ import curses
 import os
 from menu_four import menu_four_functions
 
+# Define color pair constants
+PAIR_SELECTED = 1  # For selected menu items
+PAIR_TITLE = 2     # For menu titles
+PAIR_FOOTER = 3    # For footer text
+
 class Menu:
     def __init__(self, title, items=None):
         self.title = title
@@ -48,7 +53,10 @@ class MenuSystem:
         title = f" {menu.title} "
         x_pos = (w - len(title)) // 2
         if x_pos > 0 and x_pos + len(title) < max_x:
-            stdscr.addstr(0, x_pos, title)
+            if curses.has_colors():
+                stdscr.addstr(0, x_pos, title, curses.color_pair(PAIR_TITLE) | curses.A_BOLD)
+            else:
+                stdscr.addstr(0, x_pos, title, curses.A_BOLD)
         
         # Draw menu items
         for i, item in enumerate(menu.items):
@@ -65,9 +73,15 @@ class MenuSystem:
                 
             # Item display
             try:
-                if i == menu.selected_index:
-                    stdscr.addstr(y, 4, display_text)
+                if i == menu.selected_index and curses.has_colors():
+                    # Draw a subtle highlight for the selected item
+                    stdscr.addstr(y, 2, " " * (max_x - 4), curses.color_pair(PAIR_SELECTED))
+                    stdscr.addstr(y, 4, display_text, curses.color_pair(PAIR_SELECTED) | curses.A_BOLD)
+                elif i == menu.selected_index:
+                    # Fallback for terminals without color
+                    stdscr.addstr(y, 4, display_text, curses.A_REVERSE)
                 else:
+                    # Regular item
                     stdscr.addstr(y, 4, display_text)
             except curses.error:
                 # Ignore any curses errors from drawing
@@ -78,7 +92,10 @@ class MenuSystem:
         x_pos = (w - len(footer)) // 2
         if x_pos > 0 and x_pos + len(footer) < max_x:
             try:
-                stdscr.addstr(max_y-1, x_pos, footer)
+                if curses.has_colors():
+                    stdscr.addstr(max_y-1, x_pos, footer, curses.color_pair(PAIR_FOOTER))
+                else:
+                    stdscr.addstr(max_y-1, x_pos, footer)
             except curses.error:
                 pass
         
@@ -149,6 +166,19 @@ def main(stdscr):
     # Set up curses
     curses.curs_set(0)  # Hide cursor
     stdscr.timeout(100)  # Non-blocking input
+    
+    # Initialize colors if terminal supports them
+    if curses.has_colors():
+        curses.start_color()
+        curses.use_default_colors()  # Use terminal's default colors
+        
+        # Init color pairs with subtle designer-friendly colors
+        # Light teal background with dark text for selected items
+        curses.init_pair(PAIR_SELECTED, 0, 123)  # Dark text on soft teal
+        # Warm gold for title text
+        curses.init_pair(PAIR_TITLE, 220, -1)    # Soft gold on default background
+        # Muted sage green for footer
+        curses.init_pair(PAIR_FOOTER, 108, -1)   # Soft sage green on default background
     
     # Create menu system
     menu_system = MenuSystem()
