@@ -138,19 +138,7 @@ class MenuSystem:
                 result = voice_transcription_functions.transcribe()
                 voice_transcription_functions.results.append(result)
             elif selected_index == 1:
-                # Create a temporary menu to display transcription results
-                results_menu = Menu("HISTORY")
-                results_menu.items = voice_transcription_functions.get_results() + ["Back"]
-                self.menus["results_menu"] = results_menu
-                self.current_menu = "results_menu"
-                return True
-            elif selected_index == 2:
                 self.current_menu = "main_menu"
-                return True
-        elif self.current_menu == "results_menu":
-            # Return to voice menu from results view
-            if selected_index == len(current_menu.items) - 1:
-                self.current_menu = "menu_voice"
                 return True
         else:
             # For other submenus, go back to main menu when selecting "Back"
@@ -197,7 +185,6 @@ def main(stdscr):
     voice_menu = Menu("VOICE TRANSCRIPTION")
     voice_menu.items = [
         "Transcribe",
-        "View History",
         "Back to Main Menu"
     ]
     menu_system.add_menu("menu_voice", voice_menu)
