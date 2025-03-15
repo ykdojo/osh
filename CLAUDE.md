@@ -19,7 +19,8 @@
 
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones
-- Menu highlights: Use desaturated slate blue-gray tones, not bright blues
-- Text accents: Use muted amber/tan tones, not bright yellows
+- Menu highlights: Use light dusty blue (color 74), not grayish or too vibrant blue
+- Text accents: Use muted golden amber (color 179) with just a touch of yellow
+- Footer: Very subtle desaturated sage green (color 102)
 - Minimalist approach: Make small, incremental changes and validate with user
 - When user says "remember stuff", update this CLAUDE.md file
