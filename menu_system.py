@@ -29,6 +29,13 @@ class MenuSystem:
         # Store stdscr for use in other methods
         self._stdscr = stdscr
         
+        # Special case for recording screen
+        if self.current_menu == "recording_screen" and voice_transcription_functions.is_recording:
+            # Draw the recording screen with microphone interface
+            # We use a variable in the class rather than a static variable to avoid conflicting draws
+            voice_transcription_functions.show_recording_screen(stdscr)
+            return  # Skip regular menu drawing
+        
         # Clear screen
         stdscr.clear()
         h, w = stdscr.getmaxyx()
@@ -133,37 +140,22 @@ class MenuSystem:
             elif selected_index == 2:
                 self.current_menu = "menu_three"
             elif selected_index == 3:
-                self.current_menu = "menu_four"
-            elif selected_index == 4:
                 return False  # Exit
         elif self.current_menu == "menu_voice":
             # Handle voice transcription functionality
             if selected_index == 0:
-                # Display recording screen
+                # Start transcription - it will handle the state change to recording_screen
                 voice_transcription_functions.transcribe(self._stdscr)
-                
-                # In a real implementation with keyboard shortcut, we return to the menu after recording
-                # For compatibility with menu navigation, we'll wait for any key to return to menu
-                self._stdscr.nodelay(False)  # Make getch blocking
-                key = self._stdscr.getch()
-                self._stdscr.nodelay(True)   # Restore non-blocking mode
-                
-                # Stop recording if it hasn't been stopped by the keyboard shortcut
-                if voice_transcription_functions.is_recording:
-                    voice_transcription_functions.is_recording = False
-                    result = f"Voice transcribed from {voice_transcription_functions.current_mic}"
-                    voice_transcription_functions.results.append(result)
+                # Continue the event loop
+                return True
             elif selected_index == 1:
                 self.current_menu = "main_menu"
                 return True
         elif self.current_menu == "recording_screen":
-            # Handle recording screen specially
-            # Any key (except shortcuts handled by listener) returns to voice menu
+            # Any key (except shortcuts handled by listener) stops recording and returns to voice menu
             if voice_transcription_functions.is_recording:
-                # Stop recording if it's still active
-                voice_transcription_functions.is_recording = False
-                result = f"Voice transcribed from {voice_transcription_functions.current_mic}"
-                voice_transcription_functions.results.append(result)
+                # Stop recording and return to voice menu
+                voice_transcription_functions.stop_recording()
             
             # Return to voice menu
             self.current_menu = "menu_voice"
@@ -178,7 +170,8 @@ class MenuSystem:
 def main(stdscr):
     # Set up curses
     curses.curs_set(0)  # Hide cursor
-    stdscr.nodelay(True)  # Non-blocking input
+    # Use timeout mode instead of nodelay for better CPU usage
+    stdscr.timeout(50)  # 50ms timeout
     
     # Initialize colors if terminal supports them
     if curses.has_colors():
@@ -211,7 +204,6 @@ def main(stdscr):
         "Voice Transcription",
         "Menu Two",
         "Menu Three",
-        "Menu Four",
         "Exit"
     ]
     menu_system.add_menu("main_menu", main_menu)
@@ -242,14 +234,6 @@ def main(stdscr):
     ]
     menu_system.add_menu("menu_three", menu_three)
     
-    menu_four = Menu("MENU FOUR")
-    menu_four.items = [
-        "Item 4-1",
-        "Item 4-2",
-        "Back to Main Menu"
-    ]
-    menu_system.add_menu("menu_four", menu_four)
-    
     # Create recording screen menu (empty, just for state tracking)
     recording_menu = Menu("RECORDING")
     recording_menu.items = []
@@ -261,7 +245,8 @@ def main(stdscr):
         try:
             menu_system.draw_menu(stdscr)
             key = stdscr.getch()
-            running = menu_system.handle_input(key)
+            if key != -1:  # -1 means no key was pressed during timeout
+                running = menu_system.handle_input(key)
         except curses.error:
             # Redraw on terminal resize
             stdscr.clear()

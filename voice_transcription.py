@@ -58,32 +58,19 @@ class VoiceTranscriptionFunctions:
             
             if self.is_recording:
                 # Stop recording
-                self.is_recording = False
-                result = f"Voice transcribed from {self.current_mic}"
-                self.results.append(result)
-                print(f"Recording stopped: {result}")
+                self.stop_recording()
                 
-                # Return to menu if in recording screen
+                # Return to voice menu
                 if self.menu_system and self.stdscr:
-                    if self.menu_system.current_menu == "recording_screen":
-                        print("Switching from recording screen to voice menu")
-                        self.menu_system.current_menu = "menu_voice"
-                        try:
-                            self.menu_system.draw_menu(self.stdscr)
-                        except Exception as e:
-                            print(f"Error drawing menu: {e}")
+                    self.menu_system.current_menu = "menu_voice"
+                    try:
+                        self.menu_system.draw_menu(self.stdscr)
+                    except Exception as e:
+                        print(f"Error drawing menu: {e}")
             else:
-                # Start recording if we're in the voice transcription menu and have a screen
+                # Start recording if we have necessary references
                 if self.menu_system and self.stdscr:
-                    if self.menu_system.current_menu == "menu_voice":
-                        print("Starting recording from voice menu")
-                        self.is_recording = True
-                        try:
-                            self.show_recording_screen(self.stdscr)
-                        except Exception as e:
-                            print(f"Error showing recording screen: {e}")
-                    else:
-                        print(f"Not starting recording - wrong menu: {self.menu_system.current_menu}")
+                    self.start_recording()
                 else:
                     print("Cannot start recording - missing menu system or screen reference")
         except Exception as e:
@@ -93,22 +80,41 @@ class VoiceTranscriptionFunctions:
         """Set reference to the menu system for navigation"""
         self.menu_system = menu_system
     
+    def start_recording(self):
+        """Start recording session"""
+        print("Starting recording")
+        self.is_recording = True
+        
+        # Switch to recording screen menu
+        if self.menu_system:
+            self.menu_system.current_menu = "recording_screen"
+            
+        # Show the recording UI
+        if self.stdscr:
+            try:
+                self.show_recording_screen(self.stdscr)
+            except Exception as e:
+                print(f"Error showing recording screen: {e}")
+    
+    def stop_recording(self):
+        """Stop recording session"""
+        print("Stopping recording")
+        self.is_recording = False
+        result = f"Voice transcribed from {self.current_mic}"
+        self.results.append(result)
+        print(f"Recording stopped: {result}")
+        return result
+    
     def transcribe(self, stdscr):
-        """Record and transcribe voice with simple interface"""
+        """Start transcription from menu selection"""
         self.stdscr = stdscr
         
         if not self.is_recording:
-            # Start recording
-            self.is_recording = True
-            self.show_recording_screen(stdscr)
-            # Just show the recording screen, return control to menu system
-            return None
+            # Start new recording session
+            self.start_recording()
         else:
-            # Stop recording (this branch is used when stopping via menu option)
-            self.is_recording = False
-            result = f"Voice transcribed from {self.current_mic}"
-            self.results.append(result)
-            return result
+            # Stop existing recording
+            self.stop_recording()
             
     def show_recording_screen(self, stdscr):
         """Display a simple recording interface"""
