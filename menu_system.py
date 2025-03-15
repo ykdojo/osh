@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import curses
 import os
+from menu_four import menu_four_functions
 
 class Menu:
     def __init__(self, title, items=None):
@@ -111,9 +112,34 @@ class MenuSystem:
             elif selected_index == 2:
                 self.current_menu = "menu_three"
             elif selected_index == 3:
+                self.current_menu = "menu_four"
+            elif selected_index == 4:
                 return False  # Exit
+        elif self.current_menu == "menu_four":
+            # Handle menu four functionality
+            if selected_index == 0:
+                result = menu_four_functions.option_one()
+                menu_four_functions.results.append(result)
+            elif selected_index == 1:
+                result = menu_four_functions.option_two()
+                menu_four_functions.results.append(result)
+            elif selected_index == 2:
+                # Create a temporary menu to display results
+                results_menu = Menu("RESULTS")
+                results_menu.items = menu_four_functions.get_results() + ["Back to Menu Four"]
+                self.menus["results_menu"] = results_menu
+                self.current_menu = "results_menu"
+                return True
+            elif selected_index == 3:
+                self.current_menu = "main_menu"
+                return True
+        elif self.current_menu == "results_menu":
+            # Return to menu four from results view
+            if selected_index == len(current_menu.items) - 1:
+                self.current_menu = "menu_four"
+                return True
         else:
-            # For submenus, go back to main menu when selecting "Back"
+            # For other submenus, go back to main menu when selecting "Back"
             if selected_index == len(current_menu.items) - 1:
                 self.current_menu = "main_menu"
         
@@ -133,6 +159,7 @@ def main(stdscr):
         "Menu One",
         "Menu Two",
         "Menu Three",
+        "Menu Four",
         "Exit"
     ]
     menu_system.add_menu("main_menu", main_menu)
@@ -161,6 +188,16 @@ def main(stdscr):
         "Back to Main Menu"
     ]
     menu_system.add_menu("menu_three", menu_three)
+    
+    # Create menu four with functionality
+    menu_four = Menu("MENU FOUR")
+    menu_four.items = [
+        "Run Option One",
+        "Run Option Two",
+        "View Results",
+        "Back to Main Menu"
+    ]
+    menu_system.add_menu("menu_four", menu_four)
     
     # Main loop
     running = True
