@@ -15,7 +15,10 @@
 
 ## Project Structure Notes
 - The menu system is in menu_system.py with main menu and submenus defined in the main() function
-- Functional menus should have their implementation in separate files (e.g., menu_four.py)
+- Functional menus should have their implementation in separate files
+- Voice transcription functionality is in menu_four.py (class name: VoiceTranscriptionFunctions)
+- Voice transcription is the primary menu and should always be the first option
+- Keep all menus simple and minimal - avoid adding unnecessary options
 
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones

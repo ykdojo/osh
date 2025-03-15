@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import curses
 import os
-from menu_four import menu_four_functions
+from menu_four import voice_transcription_functions
 
 # Define color pair constants
 PAIR_SELECTED = 1  # For selected menu items
@@ -123,7 +123,7 @@ class MenuSystem:
         
         if self.current_menu == "main_menu":
             if selected_index == 0:
-                self.current_menu = "menu_one"
+                self.current_menu = "menu_voice"  # Voice Transcription menu is now first
             elif selected_index == 1:
                 self.current_menu = "menu_two"
             elif selected_index == 2:
@@ -132,28 +132,25 @@ class MenuSystem:
                 self.current_menu = "menu_four"
             elif selected_index == 4:
                 return False  # Exit
-        elif self.current_menu == "menu_four":
-            # Handle menu four functionality
+        elif self.current_menu == "menu_voice":
+            # Handle voice transcription functionality
             if selected_index == 0:
-                result = menu_four_functions.option_one()
-                menu_four_functions.results.append(result)
+                result = voice_transcription_functions.transcribe()
+                voice_transcription_functions.results.append(result)
             elif selected_index == 1:
-                result = menu_four_functions.option_two()
-                menu_four_functions.results.append(result)
-            elif selected_index == 2:
-                # Create a temporary menu to display results
-                results_menu = Menu("RESULTS")
-                results_menu.items = menu_four_functions.get_results() + ["Back to Menu Four"]
+                # Create a temporary menu to display transcription results
+                results_menu = Menu("HISTORY")
+                results_menu.items = voice_transcription_functions.get_results() + ["Back"]
                 self.menus["results_menu"] = results_menu
                 self.current_menu = "results_menu"
                 return True
-            elif selected_index == 3:
+            elif selected_index == 2:
                 self.current_menu = "main_menu"
                 return True
         elif self.current_menu == "results_menu":
-            # Return to menu four from results view
+            # Return to voice menu from results view
             if selected_index == len(current_menu.items) - 1:
-                self.current_menu = "menu_four"
+                self.current_menu = "menu_voice"
                 return True
         else:
             # For other submenus, go back to main menu when selecting "Back"
@@ -186,7 +183,7 @@ def main(stdscr):
     # Create main menu
     main_menu = Menu("MAIN MENU")
     main_menu.items = [
-        "Menu One",
+        "Voice Transcription",
         "Menu Two",
         "Menu Three",
         "Menu Four",
@@ -195,13 +192,15 @@ def main(stdscr):
     menu_system.add_menu("main_menu", main_menu)
     
     # Create submenus
-    menu_one = Menu("MENU ONE")
-    menu_one.items = [
-        "Item 1-1",
-        "Item 1-2",
+    
+    # Voice Transcription menu (former menu_four, now first)
+    voice_menu = Menu("VOICE TRANSCRIPTION")
+    voice_menu.items = [
+        "Transcribe",
+        "View History",
         "Back to Main Menu"
     ]
-    menu_system.add_menu("menu_one", menu_one)
+    menu_system.add_menu("menu_voice", voice_menu)
     
     menu_two = Menu("MENU TWO")
     menu_two.items = [
@@ -219,12 +218,10 @@ def main(stdscr):
     ]
     menu_system.add_menu("menu_three", menu_three)
     
-    # Create menu four with functionality
     menu_four = Menu("MENU FOUR")
     menu_four.items = [
-        "Run Option One",
-        "Run Option Two",
-        "View Results",
+        "Item 4-1",
+        "Item 4-2",
         "Back to Main Menu"
     ]
     menu_system.add_menu("menu_four", menu_four)
