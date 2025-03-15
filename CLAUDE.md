@@ -14,11 +14,19 @@
 - Adding chmod permissions to Python files is not necessary
 
 ## Project Structure Notes
+- Main files:
+  - menu_system.py - Handles UI and menu navigation with curses
+  - voice_transcription.py - Handles voice recording functionality and keyboard shortcuts
 - The menu system is in menu_system.py with main menu and submenus defined in the main() function
 - Functional menus should have their implementation in separate files
-- Voice transcription functionality is in menu_four.py (class name: VoiceTranscriptionFunctions)
 - Voice transcription is the primary menu and should always be the first option
 - Keep all menus simple and minimal - avoid adding unnecessary options
+- Other files are supporting files or legacy code
+
+## Current Development Plans
+- Next step: Implement voice recording functionality
+- Step after: Implement transcription of recorded voice
+- Focus on getting voice recording working reliably before adding transcription
 
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones
