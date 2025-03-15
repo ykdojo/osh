@@ -175,10 +175,10 @@ def main(stdscr):
         # Init color pairs with subtle designer-friendly colors
         # Light blue background for selected items (not too vibrant)
         curses.init_pair(PAIR_SELECTED, 0, 74)   # Dark text on light dusty blue
-        # Soft amber with slightly more yellow for title text
-        curses.init_pair(PAIR_TITLE, 179, -1)    # Muted golden amber on default background
-        # Very subtle sage green for footer
-        curses.init_pair(PAIR_FOOTER, 102, -1)   # Desaturated sage on default background
+        # Subtle orangish color for title that complements the blue
+        curses.init_pair(PAIR_TITLE, 173, -1)    # Soft coral/orange on default background
+        # Brighter footer text that's more visible
+        curses.init_pair(PAIR_FOOTER, 145, -1)   # Lighter grayish-lavender for footer
     
     # Create menu system
     menu_system = MenuSystem()

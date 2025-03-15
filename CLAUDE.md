@@ -20,7 +20,8 @@
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones
 - Menu highlights: Use light dusty blue (color 74), not grayish or too vibrant blue
-- Text accents: Use muted golden amber (color 179) with just a touch of yellow
-- Footer: Very subtle desaturated sage green (color 102)
+- Title text: Subtle coral/orange (color 173) that complements the blue highlight
+- Footer: Light grayish-lavender (color 145) for better visibility
+- Use complementary colors that work well together (blue selection with orange title)
 - Minimalist approach: Make small, incremental changes and validate with user
 - When user says "remember stuff", update this CLAUDE.md file
