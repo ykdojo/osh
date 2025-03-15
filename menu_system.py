@@ -142,19 +142,32 @@ class MenuSystem:
                 # Display recording screen
                 voice_transcription_functions.transcribe(self._stdscr)
                 
-                # In a real implementation, we would wait for the keyboard shortcut ⇧⌘Z
-                # For now, we'll just wait for any key press to "stop" recording
+                # In a real implementation with keyboard shortcut, we return to the menu after recording
+                # For compatibility with menu navigation, we'll wait for any key to return to menu
                 self._stdscr.nodelay(False)  # Make getch blocking
                 key = self._stdscr.getch()
                 self._stdscr.nodelay(True)   # Restore non-blocking mode
                 
-                # Stop recording and get result
-                voice_transcription_functions.is_recording = False
-                result = f"Voice transcribed from {voice_transcription_functions.current_mic}"
-                voice_transcription_functions.results.append(result)
+                # Stop recording if it hasn't been stopped by the keyboard shortcut
+                if voice_transcription_functions.is_recording:
+                    voice_transcription_functions.is_recording = False
+                    result = f"Voice transcribed from {voice_transcription_functions.current_mic}"
+                    voice_transcription_functions.results.append(result)
             elif selected_index == 1:
                 self.current_menu = "main_menu"
                 return True
+        elif self.current_menu == "recording_screen":
+            # Handle recording screen specially
+            # Any key (except shortcuts handled by listener) returns to voice menu
+            if voice_transcription_functions.is_recording:
+                # Stop recording if it's still active
+                voice_transcription_functions.is_recording = False
+                result = f"Voice transcribed from {voice_transcription_functions.current_mic}"
+                voice_transcription_functions.results.append(result)
+            
+            # Return to voice menu
+            self.current_menu = "menu_voice"
+            return True
         else:
             # For other submenus, go back to main menu when selecting "Back"
             if selected_index == len(current_menu.items) - 1:
@@ -182,6 +195,15 @@ def main(stdscr):
     
     # Create menu system
     menu_system = MenuSystem()
+    
+    # Set up keyboard shortcut listener for voice transcription
+    print("Setting up voice transcription keyboard shortcut")
+    voice_transcription_functions.set_menu_system(menu_system)
+    voice_transcription_functions.stdscr = stdscr
+    try:
+        voice_transcription_functions.start_keyboard_listener()
+    except Exception as e:
+        print(f"Error starting keyboard listener: {e}")
     
     # Create main menu
     main_menu = Menu("MAIN MENU")
@@ -227,6 +249,11 @@ def main(stdscr):
         "Back to Main Menu"
     ]
     menu_system.add_menu("menu_four", menu_four)
+    
+    # Create recording screen menu (empty, just for state tracking)
+    recording_menu = Menu("RECORDING")
+    recording_menu.items = []
+    menu_system.add_menu("recording_screen", recording_menu)
     
     # Main loop
     running = True
