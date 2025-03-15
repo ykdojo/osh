@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import curses
 import os
-from menu_four import voice_transcription_functions
+from voice_transcription import voice_transcription_functions
 
 # Define color pair constants
 PAIR_SELECTED = 1  # For selected menu items
