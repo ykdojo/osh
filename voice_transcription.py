@@ -16,26 +16,31 @@ class VoiceTranscriptionFunctions:
         
     def start_keyboard_listener(self):
         """Start listening for the keyboard shortcut"""
-        # Define the hotkey combination
+        # Define the hotkey combinations
         SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('z')}
+        TEST_COMBO = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('x')}
         current = set()
         
         def on_press(key):
             try:
-                # Check if the key is part of our shortcut
-                if key in SHORTCUT_COMBO:
+                # Add key to current set if it's part of any shortcut
+                if key in SHORTCUT_COMBO or key in TEST_COMBO:
                     current.add(key)
-                    # If all keys in the combo are pressed, toggle recording
-                    if all(k in current for k in SHORTCUT_COMBO):
-                        print("Keyboard shortcut triggered: ⇧⌘Z")
-                        self.toggle_recording()
+                
+                # Check for shortcuts
+                if all(k in current for k in SHORTCUT_COMBO):
+                    print("Keyboard shortcut triggered: ⇧⌘Z")
+                    self.toggle_recording()
+                elif all(k in current for k in TEST_COMBO):
+                    print("Test shortcut triggered: ⇧⌘X")
+                    self.show_test_screen()
             except Exception as e:
                 print(f"Error in keyboard listener: {e}")
         
         def on_release(key):
             try:
                 # Remove key from current pressed keys
-                if key in SHORTCUT_COMBO and key in current:
+                if key in current:
                     current.remove(key)
             except Exception as e:
                 print(f"Error in keyboard release: {e}")
@@ -160,6 +165,56 @@ class VoiceTranscriptionFunctions:
         if not self.results:
             return ["No transcriptions performed yet"]
         return self.results
+    
+    def show_test_screen(self):
+        """Display a test screen when the test shortcut is pressed"""
+        if not self.menu_system or not self.stdscr:
+            print("Cannot show test screen - missing menu system or screen reference")
+            return
+        
+        # Switch to test screen menu
+        self.menu_system.current_menu = "test_screen"
+        
+        # Show the test screen UI
+        try:
+            self.display_test_screen(self.stdscr)
+        except Exception as e:
+            print(f"Error showing test screen: {e}")
+    
+    def display_test_screen(self, stdscr):
+        """Display a simple test interface"""
+        h, w = stdscr.getmaxyx()
+        max_y = h - 1
+        max_x = w - 1
+        
+        # Clear screen
+        stdscr.clear()
+        
+        # Draw border
+        stdscr.box()
+        
+        # Draw title
+        title = " TEST SCREEN "
+        x_pos = (w - len(title)) // 2
+        if x_pos > 0:
+            if curses.has_colors():
+                stdscr.addstr(0, x_pos, title, curses.color_pair(2) | curses.A_BOLD)
+            else:
+                stdscr.addstr(0, x_pos, title, curses.A_BOLD)
+        
+        # Message
+        test_msg = "This is a test screen triggered by ⇧⌘X"
+        x_pos = (w - len(test_msg)) // 2
+        if x_pos > 0:
+            stdscr.addstr(h // 2 - 2, x_pos, test_msg)
+        
+        # Instructions
+        instruction = "Press any key to return to the voice transcription menu"
+        x_pos = (w - len(instruction)) // 2
+        if x_pos > 0:
+            stdscr.addstr(h // 2 + 2, x_pos, instruction)
+        
+        stdscr.refresh()
 
 # Create a singleton instance
 voice_transcription_functions = VoiceTranscriptionFunctions()

@@ -149,6 +149,10 @@ class MenuSystem:
                 # Continue the event loop
                 return True
             elif selected_index == 1:
+                # Go to test screen
+                voice_transcription_functions.show_test_screen()
+                return True
+            elif selected_index == 2:
                 self.current_menu = "main_menu"
                 return True
         elif self.current_menu == "recording_screen":
@@ -158,6 +162,10 @@ class MenuSystem:
                 voice_transcription_functions.stop_recording()
             
             # Return to voice menu
+            self.current_menu = "menu_voice"
+            return True
+        elif self.current_menu == "test_screen":
+            # Any key returns to the voice transcription menu
             self.current_menu = "menu_voice"
             return True
         else:
@@ -214,6 +222,7 @@ def main(stdscr):
     voice_menu = Menu("VOICE TRANSCRIPTION")
     voice_menu.items = [
         "Start Transcribing (⇧⌘Z)",
+        "Test Screen (⇧⌘X)",
         "Back to Main Menu"
     ]
     menu_system.add_menu("menu_voice", voice_menu)
@@ -238,6 +247,11 @@ def main(stdscr):
     recording_menu = Menu("RECORDING")
     recording_menu.items = []
     menu_system.add_menu("recording_screen", recording_menu)
+    
+    # Create test screen menu (empty, just for state tracking)
+    test_menu = Menu("TEST SCREEN")
+    test_menu.items = []
+    menu_system.add_menu("test_screen", test_menu)
     
     # Main loop
     running = True
