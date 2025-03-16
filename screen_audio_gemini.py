@@ -20,7 +20,7 @@ def record_and_process(
     duration=7, 
     verbose=False, 
     screen_index=None,
-    manual_interrupt_key='q',
+    manual_stop_event=None,
     skip_transcription=False
 ):
     """
@@ -31,7 +31,7 @@ def record_and_process(
         duration (int): Recording duration in seconds for screen recording
         verbose (bool): Whether to show detailed output logs
         screen_index (int, optional): Screen index to capture, if None will use default
-        manual_interrupt_key (str, optional): Key to press to manually stop recording
+        manual_stop_event (threading.Event, optional): Event to trigger manual stopping from outside
         skip_transcription (bool): If True, skip the Gemini transcription step
         
     Returns:
@@ -44,7 +44,7 @@ def record_and_process(
         duration=duration,
         verbose=verbose,
         screen_index=screen_index,
-        manual_interrupt_key=manual_interrupt_key
+        manual_stop_event=manual_stop_event
     )
     
     if not video_path:
@@ -63,6 +63,7 @@ def record_and_process(
 
 if __name__ == "__main__":
     import argparse
+    import threading
     
     # Load environment variables from .env file
     load_dotenv()
@@ -99,8 +100,31 @@ if __name__ == "__main__":
         list_audio_devices()
         exit(0)
     
-    # Set manual interrupt key if not disabled
-    manual_interrupt_key = None if args.no_manual_interrupt else args.key
+    # Create manual stop event
+    manual_stop_event = threading.Event()
+    
+    # Setup keyboard listener if manual interrupt is enabled
+    if not args.no_manual_interrupt:
+        try:
+            from pynput import keyboard
+            
+            def on_press(key):
+                try:
+                    # Check if the pressed key matches the interrupt key
+                    if hasattr(key, 'char') and key.char == args.key:
+                        print(f"\nManual interrupt key '{args.key}' pressed.")
+                        manual_stop_event.set()
+                        return False  # Stop listener
+                except AttributeError:
+                    pass  # Special key, ignore
+            
+            # Start keyboard listener in a separate thread
+            print(f"Press '{args.key}' to stop recording early")
+            keyboard_listener = keyboard.Listener(on_press=on_press)
+            keyboard_listener.daemon = True
+            keyboard_listener.start()
+        except ImportError:
+            print("Warning: pynput module not found. Manual interrupt disabled.")
     
     # Record and process
     record_and_process(
@@ -108,6 +132,6 @@ if __name__ == "__main__":
         duration=args.duration, 
         verbose=args.verbose,
         screen_index=args.screen,
-        manual_interrupt_key=manual_interrupt_key,
+        manual_stop_event=manual_stop_event,
         skip_transcription=args.skip_transcription
     )

@@ -17,7 +17,7 @@ from recorders.utils import combine_audio_video, list_screen_devices, list_audio
 from recorders.recorder import record_audio, record_screen
 
 
-def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None, manual_interrupt_key=None):
+def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None, manual_stop_event=None):
     """
     Record high-quality screen and audio simultaneously using threading,
     with audio recording stopping when screen recording finishes
@@ -27,7 +27,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         duration (int): Recording duration in seconds for screen recording
         verbose (bool): Whether to show detailed output logs
         screen_index (int, optional): Screen index to capture, if None will use default
-        manual_interrupt_key (str, optional): Key to press to manually stop recording
+        manual_stop_event (threading.Event, optional): Event to trigger manual stopping from outside
     
     Returns:
         str: Path to final combined file or None if failed
@@ -48,15 +48,16 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
     # Create an event to signal when screen recording is done
     stop_event = threading.Event()
     
-    # Create an event to allow manual interruption
-    manual_stop_event = threading.Event()
+    # Create a default manual stop event if none is provided
+    if manual_stop_event is None:
+        manual_stop_event = threading.Event()
     
     try:
         print("=== Starting High-Quality Recording ===")
         print(f"Screen recording duration: {duration} seconds")
         print("Audio will record until screen recording completes")
-        if manual_interrupt_key:
-            print(f"Press '{manual_interrupt_key}' to stop recording early")
+        if manual_stop_event:
+            print("Recording can be stopped early using external control")
         print(f"Final output will be saved to: {output_file}")
         
         # Display which screen will be captured
@@ -83,29 +84,6 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
             except Exception as e:
                 print(f"Error in audio recording thread: {str(e)}")
                 audio_result[0] = None
-                
-        # Define function to monitor for keyboard interrupt if manual_interrupt_key is provided
-        if manual_interrupt_key:
-            try:
-                from pynput import keyboard
-                
-                def on_press(key):
-                    try:
-                        # Check if the pressed key matches the interrupt key
-                        if hasattr(key, 'char') and key.char == manual_interrupt_key:
-                            print(f"\nManual interrupt key '{manual_interrupt_key}' pressed.")
-                            manual_stop_event.set()
-                            return False  # Stop listener
-                    except AttributeError:
-                        pass  # Special key, ignore
-                
-                # Start keyboard listener in a separate thread
-                keyboard_listener = keyboard.Listener(on_press=on_press)
-                keyboard_listener.daemon = True
-                keyboard_listener.start()
-            except ImportError:
-                print("Warning: pynput module not found. Manual interrupt disabled.")
-                manual_stop_event = None
         
         # Create thread for audio recording
         audio_thread = threading.Thread(target=audio_recording_thread)
@@ -178,6 +156,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
 
 if __name__ == "__main__":
     import argparse
+    import threading
     
     parser = argparse.ArgumentParser(description="High-quality screen and audio recorder")
     parser.add_argument("-d", "--duration", type=int, default=7, help="Recording duration in seconds")
@@ -201,8 +180,31 @@ if __name__ == "__main__":
         list_audio_devices()
         exit(0)
     
-    # Set manual interrupt key if not disabled
-    manual_interrupt_key = None if args.no_manual_interrupt else args.key
+    # Create manual stop event
+    manual_stop_event = threading.Event()
+    
+    # Setup keyboard listener if manual interrupt is enabled
+    if not args.no_manual_interrupt:
+        try:
+            from pynput import keyboard
+            
+            def on_press(key):
+                try:
+                    # Check if the pressed key matches the interrupt key
+                    if hasattr(key, 'char') and key.char == args.key:
+                        print(f"\nManual interrupt key '{args.key}' pressed.")
+                        manual_stop_event.set()
+                        return False  # Stop listener
+                except AttributeError:
+                    pass  # Special key, ignore
+            
+            # Start keyboard listener in a separate thread
+            print(f"Press '{args.key}' to stop recording early")
+            keyboard_listener = keyboard.Listener(on_press=on_press)
+            keyboard_listener.daemon = True
+            keyboard_listener.start()
+        except ImportError:
+            print("Warning: pynput module not found. Manual interrupt disabled.")
     
     # Record screen and audio
     record_screen_and_audio(
@@ -210,5 +212,5 @@ if __name__ == "__main__":
         duration=args.duration, 
         verbose=args.verbose,
         screen_index=args.screen,
-        manual_interrupt_key=manual_interrupt_key
+        manual_stop_event=manual_stop_event
     )
