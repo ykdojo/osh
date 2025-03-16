@@ -154,7 +154,7 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720'):
         print(f"Starting screen recording for {duration} seconds...")
         print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output_stream))}")
         
-        output_stream.run(capture_stdout=True, capture_stderr=True, overwrite_output=True)
+        output_stream.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=True)
         print(f"Screen recording completed and saved to {output_file}")
         return output_file
         
@@ -194,7 +194,7 @@ def combine_audio_video(video_file, audio_file, output_file):
         print(f"Combining video and audio into {output_file}...")
         print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output))}")
         
-        output.run(capture_stdout=True, capture_stderr=True, overwrite_output=True)
+        output.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=True)
         print(f"Combined file saved to: {output_file}")
         return output_file
         
@@ -246,6 +246,8 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=10):
         
         print("\nStarting recording now...")
         
+        # Add -y flag to force overwrite without prompting
+        screen_cmd.insert(1, '-y')
         # Start screen recording in background
         screen_process = subprocess.Popen(screen_cmd)
         
