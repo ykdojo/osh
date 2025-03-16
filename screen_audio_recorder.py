@@ -288,7 +288,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
             return None
         
         print("\n3. Combining video and audio...")
-        result = combine_audio_video(temp_video_path, audio_result[0], output_file, verbose=verbose)
+        result = combine_audio_video(temp_video_path, audio_result[0], output_file, verbose=verbose, time_diff=time_diff)
         
         # Clean up temporary files
         try:

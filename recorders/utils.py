@@ -135,41 +135,147 @@ def list_screen_devices(print_output=True):
             print(f"Error listing devices: {str(e)}")
         return {}
 
-def combine_audio_video(video_file, audio_file, output_file, verbose=False):
+def combine_audio_video(video_file, audio_file, output_file, verbose=False, time_diff=None):
     """
-    Combine separate video and audio files into a single output file
+    Combine separate video and audio files into a single output file with timing synchronization.
+    Adds black frames at beginning and end to align audio and video properly.
     
     Args:
         video_file (str): Path to video file
         audio_file (str): Path to audio file
         output_file (str): Path to output combined file
         verbose (bool): Whether to show detailed output logs
+        time_diff (float): Time difference between audio and video completion
+                          (audio_complete_time - screen_complete_time)
     
     Returns:
         str: Path to combined file or None if failed
     """
     try:
-        # Input video stream
-        video_stream = ffmpeg.input(video_file)
+        import subprocess
+        import tempfile
+        import os
         
-        # Input audio stream
-        audio_stream = ffmpeg.input(audio_file)
+        # Get audio duration using ffprobe
+        audio_duration_cmd = [
+            'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1', audio_file
+        ]
+        audio_duration = float(subprocess.check_output(audio_duration_cmd).decode('utf-8').strip())
         
-        # Combine streams
-        output = ffmpeg.output(
-            video_stream, 
-            audio_stream, 
-            output_file,
-            vcodec='copy',  # Copy video without re-encoding
-            acodec='aac',   # Convert audio to AAC
-            strict='experimental'
+        # Get video duration using ffprobe
+        video_duration_cmd = [
+            'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1', video_file
+        ]
+        video_duration = float(subprocess.check_output(video_duration_cmd).decode('utf-8').strip())
+        
+        if verbose:
+            print(f"Audio duration: {audio_duration:.4f} seconds")
+            print(f"Video duration: {video_duration:.4f} seconds")
+            print(f"Time difference: {time_diff:.4f} seconds")
+        
+        # Calculate the duration for the beginning black screen
+        # The sequence is: audio starts, video starts, video ends, audio ends
+        # So beginning_duration = audio_duration - video_duration - time_diff
+        beginning_duration = audio_duration - video_duration - time_diff
+        ending_duration = time_diff
+        
+        # Verify both durations are positive
+        if beginning_duration < 0 or ending_duration < 0:
+            raise ValueError(f"Invalid timing: beginning_duration={beginning_duration:.4f}, ending_duration={ending_duration:.4f}")
+        
+        if verbose:
+            print(f"Adding black screen at beginning: {beginning_duration:.4f} seconds")
+            print(f"Adding black screen at end: {ending_duration:.4f} seconds")
+        
+        # Get video dimensions from original video
+        video_info_cmd = [
+            'ffprobe', '-v', 'error', '-select_streams', 'v:0',
+            '-show_entries', 'stream=width,height,r_frame_rate',
+            '-of', 'csv=p=0', video_file
+        ]
+        video_info = subprocess.check_output(video_info_cmd).decode('utf-8').strip().split(',')
+        width, height = int(video_info[0]), int(video_info[1])
+        
+        # Parse framerate (which comes as a fraction like "30/1")
+        framerate_parts = video_info[2].split('/')
+        framerate = int(framerate_parts[0]) / int(framerate_parts[1])
+        
+        # Create a temporary file for the padded video
+        with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as padded_video:
+            padded_video_path = padded_video.name
+        
+        # Use filtergraph to add black padding at start and end
+        filter_complex = (
+            f"color=black:s={width}x{height}:r={framerate}:d={beginning_duration}[start];"
+            f"color=black:s={width}x{height}:r={framerate}:d={ending_duration}[end];"
+            f"[start][0:v][end]concat=n=3:v=1:a=0"
         )
+        
+        padding_cmd = [
+            'ffmpeg', '-y',
+            '-i', video_file,
+            '-filter_complex', filter_complex,
+            '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+            padded_video_path
+        ]
+        
+        if verbose:
+            print(f"Running padding command: {' '.join(padding_cmd)}")
+        
+        subprocess.run(
+            padding_cmd, 
+            stdout=subprocess.DEVNULL if not verbose else None,
+            stderr=subprocess.DEVNULL if not verbose else None
+        )
+        
+        # Create empty audio file for beginning section
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as silent_start:
+            silent_start_path = silent_start.name
+        
+        # Create silent audio file of beginning_duration length
+        silence_cmd = [
+            'ffmpeg', '-y',
+            '-f', 'lavfi', '-i', f'anullsrc=r=44100:cl=stereo:d={beginning_duration}',
+            silent_start_path
+        ]
+        subprocess.run(silence_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Use ffmpeg to delay the audio by beginning_duration (trim the beginning)
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as trimmed_audio:
+            trimmed_audio_path = trimmed_audio.name
+        
+        # Final output with proper alignment
+        output_cmd = [
+            'ffmpeg', '-y',
+            '-i', padded_video_path,
+            '-i', audio_file,
+            '-filter_complex', 'aresample=async=1000',  # Fix async audio/video
+            '-c:v', 'copy',
+            '-c:a', 'aac',
+            '-strict', 'experimental',
+            output_file
+        ]
         
         print(f"Combining video and audio into {output_file}...")
         if verbose:
-            print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output))}")
+            print(f"Running ffmpeg command: {' '.join(output_cmd)}")
         
-        output.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=not verbose)
+        subprocess.run(
+            output_cmd, 
+            stdout=subprocess.DEVNULL if not verbose else None,
+            stderr=subprocess.DEVNULL if not verbose else None
+        )
+        
+        # Clean up temporary files
+        try:
+            os.remove(padded_video_path)
+            os.remove(silent_start_path)
+        except Exception as cleanup_e:
+            if verbose:
+                print(f"Warning during cleanup: {str(cleanup_e)}")
+        
         if verbose:
             print(f"Combined file saved to: {output_file}")
         return output_file
