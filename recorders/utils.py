@@ -206,7 +206,8 @@ def combine_audio_video(video_file, audio_file, output_file, verbose=False, time
         with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as padded_video:
             padded_video_path = padded_video.name
         
-        # Use filtergraph to add black padding at start and end
+        # Create padded video with black frames at beginning and end
+        # This single command does everything in one step
         filter_complex = (
             f"color=black:s={width}x{height}:r={framerate}:d={beginning_duration}[start];"
             f"color=black:s={width}x{height}:r={framerate}:d={ending_duration}[end];"
@@ -222,7 +223,8 @@ def combine_audio_video(video_file, audio_file, output_file, verbose=False, time
         ]
         
         if verbose:
-            print(f"Running padding command: {' '.join(padding_cmd)}")
+            print(f"Creating padded video with black frames...")
+            print(f"Command: {' '.join(padding_cmd)}")
         
         subprocess.run(
             padding_cmd, 
@@ -230,37 +232,20 @@ def combine_audio_video(video_file, audio_file, output_file, verbose=False, time
             stderr=subprocess.DEVNULL if not verbose else None
         )
         
-        # Create empty audio file for beginning section
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as silent_start:
-            silent_start_path = silent_start.name
-        
-        # Create silent audio file of beginning_duration length
-        silence_cmd = [
-            'ffmpeg', '-y',
-            '-f', 'lavfi', '-i', f'anullsrc=r=44100:cl=stereo:d={beginning_duration}',
-            silent_start_path
-        ]
-        subprocess.run(silence_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        
-        # Use ffmpeg to delay the audio by beginning_duration (trim the beginning)
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as trimmed_audio:
-            trimmed_audio_path = trimmed_audio.name
-        
-        # Final output with proper alignment
+        # Combine padded video with full audio
         output_cmd = [
             'ffmpeg', '-y',
             '-i', padded_video_path,
             '-i', audio_file,
-            '-filter_complex', 'aresample=async=1000',  # Fix async audio/video
-            '-c:v', 'copy',
-            '-c:a', 'aac',
+            '-c:v', 'copy',              # Copy video without re-encoding
+            '-c:a', 'aac',               # Convert audio to AAC
             '-strict', 'experimental',
             output_file
         ]
         
         print(f"Combining video and audio into {output_file}...")
         if verbose:
-            print(f"Running ffmpeg command: {' '.join(output_cmd)}")
+            print(f"Command: {' '.join(output_cmd)}")
         
         subprocess.run(
             output_cmd, 
@@ -271,13 +256,13 @@ def combine_audio_video(video_file, audio_file, output_file, verbose=False, time
         # Clean up temporary files
         try:
             os.remove(padded_video_path)
-            os.remove(silent_start_path)
         except Exception as cleanup_e:
             if verbose:
                 print(f"Warning during cleanup: {str(cleanup_e)}")
         
         if verbose:
             print(f"Combined file saved to: {output_file}")
+        
         return output_file
         
     except Exception as e:
