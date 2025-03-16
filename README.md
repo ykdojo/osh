@@ -15,9 +15,16 @@ A Textual-based Python application with Gemini AI integration.
    pip install -r requirements.txt
    ```
 
-2. Run the application:
+2. Start the application in one of these ways:
    ```
-   ./run.sh
+   # Run the main application
+   bash run.sh
+   
+   # Just activate the virtual environment (must be sourced)
+   source activate_env.sh
+   
+   # Activate the environment and start Claude
+   bash start_claude.sh
    ```
 
 ## Automated Typing Scripts

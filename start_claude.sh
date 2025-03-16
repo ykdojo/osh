@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Source the virtual environment directly
+# Source the activation script directly
 source "$(dirname "$0")/venv/bin/activate"
 
 # Remind user about requirements
@@ -11,6 +11,6 @@ if command -v brew &> /dev/null && ! brew list portaudio &> /dev/null; then
     echo "portaudio not found, but may be needed for PyAudio. Install with 'brew install portaudio' if you encounter issues."
 fi
 
-# Run the menu system
-echo "Starting menu system..."
-python menu_system.py
+# Run claude
+echo "Starting Claude coding environment..."
+claude
