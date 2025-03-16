@@ -13,14 +13,22 @@ import google.generativeai as genai
 load_dotenv()
 
 def generate(video_file_path=None):
-    """Process a video with Gemini"""
+    """
+    Process a video with Gemini
+    
+    Args:
+        video_file_path (str, optional): Path to the video file to process
+        
+    Returns:
+        str: The transcription text if successful, None otherwise
+    """
     
     # Configure Gemini client - use GEMINI_API_KEY from .env file
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         print("Error: GEMINI_API_KEY not found in environment variables")
         print("Please make sure you have a .env file with your GEMINI_API_KEY")
-        return
+        return None
     
     # Use default file if none provided
     if not video_file_path:
@@ -30,7 +38,7 @@ def generate(video_file_path=None):
     # Check if the video file exists
     if not os.path.exists(video_file_path):
         print(f"Error: Video file '{video_file_path}' not found.")
-        return
+        return None
     
     try:
         # Configure Gemini API
@@ -64,9 +72,13 @@ def generate(video_file_path=None):
         print(response.text)
         
         print("\n--- End of Response ---")
+        
+        # Return the transcription text
+        return response.text
             
     except Exception as e:
         print(f"Error during video processing: {str(e)}")
+        return None
 
 if __name__ == "__main__":
     # Use command line argument if provided
