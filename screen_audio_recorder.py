@@ -23,8 +23,16 @@ def list_audio_devices():
             print(f"[{i}] {device['name']} (Inputs: {device['max_input_channels']})")
     return devices
 
-def list_screen_devices():
-    """List available avfoundation devices (screens)."""
+def list_screen_devices(print_output=True):
+    """
+    List available avfoundation devices (screens) with enhanced descriptions.
+    
+    Args:
+        print_output (bool): Whether to print the device list
+        
+    Returns:
+        dict: Dictionary mapping screen indices to screen names
+    """
     try:
         # This command lists available devices on macOS
         result = subprocess.run(
@@ -32,11 +40,107 @@ def list_screen_devices():
             stderr=subprocess.PIPE,
             text=True
         )
-        print(result.stderr)
-        return result.stderr
+        
+        # Only print if requested
+        if print_output:
+            print(result.stderr)
+            
+        # Get more detailed display information from system_profiler
+        display_info = {}
+        try:
+            displays = subprocess.run(
+                ['system_profiler', 'SPDisplaysDataType'],
+                stdout=subprocess.PIPE,
+                text=True
+            )
+            
+            # Extract display names with better parsing
+            display_data = displays.stdout
+            in_display_section = False
+            current_display = None
+            
+            for line in display_data.split('\n'):
+                line = line.strip()
+                
+                # Check if we've reached the displays section
+                if "Displays:" in line:
+                    in_display_section = True
+                    continue
+                
+                if not in_display_section:
+                    continue
+                    
+                # Start of a new display entry
+                if line and ":" in line and not line.startswith(" "):
+                    current_display = line.split(":")[0].strip()
+                    display_info[current_display] = {
+                        "name": current_display,
+                        "is_main": False,
+                        "resolution": "",
+                        "type": ""
+                    }
+                # Properties within a display entry
+                elif current_display and ":" in line:
+                    key, value = [x.strip() for x in line.split(":", 1)]
+                    
+                    if key == "Main Display" and value == "Yes":
+                        display_info[current_display]["is_main"] = True
+                    elif key == "Resolution":
+                        display_info[current_display]["resolution"] = value
+                    elif key == "Display Type":
+                        display_info[current_display]["type"] = value
+        except Exception as display_err:
+            if print_output:
+                print(f"Warning: Could not get detailed display info: {str(display_err)}")
+            
+        # Parse the output to extract screen names
+        screens = {}
+        lines = result.stderr.split('\n')
+        for line in lines:
+            if '[AVFoundation indev' in line and 'Capture screen' in line:
+                parts = line.strip().split('] [')
+                if len(parts) >= 2:
+                    index_part = parts[1].split(']')[0]
+                    name_part = parts[1].split('] ')[1]
+                    try:
+                        index = int(index_part)
+                        
+                        # Try to enhance screen descriptions with more details
+                        if "Capture screen" in name_part and display_info:
+                            screen_num = name_part.split("Capture screen ")[1]
+                            
+                            # In macOS, Capture screen 0 is typically the main display
+                            if screen_num == "0":
+                                for display_name, info in display_info.items():
+                                    if info.get("is_main"):
+                                        display_type = info.get("type", "")
+                                        desc = display_name
+                                        if display_type:
+                                            desc = f"{display_name} ({display_type})"
+                                        name_part = f"Capture screen 0 - {desc}"
+                                        break
+                            # Other displays
+                            else:
+                                # Find any non-main displays
+                                non_main_displays = [d for d, info in display_info.items() if not info.get("is_main")]
+                                if len(non_main_displays) >= int(screen_num):
+                                    display_name = non_main_displays[int(screen_num)-1]
+                                    info = display_info[display_name]
+                                    resolution = info.get("resolution", "").split(" @")[0]
+                                    if resolution:
+                                        name_part = f"Capture screen {screen_num} - {display_name} ({resolution})"
+                                    else:
+                                        name_part = f"Capture screen {screen_num} - {display_name}"
+                                    
+                        screens[index] = name_part
+                    except:
+                        pass
+                        
+        return screens
     except Exception as e:
-        print(f"Error listing devices: {str(e)}")
-        return None
+        if print_output:
+            print(f"Error listing devices: {str(e)}")
+        return {}
 
 def record_audio(output_file, duration, fs=44100, verbose=False):
     """
@@ -114,7 +218,7 @@ def record_audio(output_file, duration, fs=44100, verbose=False):
         print(f"Error saving audio file: {str(e)}")
         return None
 
-def record_screen(output_file, duration, framerate=30, resolution='1280x720'):
+def record_screen(output_file, duration, framerate=30, resolution='1280x720', screen_index=None):
     """
     Record screen only (no audio) using ffmpeg
     
@@ -123,6 +227,7 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720'):
         duration (int): Recording duration in seconds
         framerate (int): Frame rate for recording
         resolution (str): Video resolution in format 'WIDTHxHEIGHT'
+        screen_index (int, optional): Screen index to capture, if None will list available screens
     
     Returns:
         str: Path to saved video file or None if failed
@@ -130,8 +235,11 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720'):
     # List available screen devices
     devices_info = list_screen_devices()
     
-    # Default to screen index 3 (macOS "Capture screen 0")
-    screen_index = 3
+    # If no screen index provided, prompt user to select or use default
+    if screen_index is None:
+        # Default to screen index 4 (macOS "Capture screen 1")
+        screen_index = 4
+        print("No screen index specified. Using default screen index 4.")
     
     print(f"Using screen index: {screen_index}")
     
@@ -210,7 +318,7 @@ def combine_audio_video(video_file, audio_file, output_file, verbose=False):
         print(f"Error combining audio and video: {str(e)}")
         return None
 
-def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False):
+def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None):
     """
     Record high-quality screen and audio separately, then combine them
     
@@ -218,6 +326,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         output_file (str): Final output file path
         duration (int): Recording duration in seconds
         verbose (bool): Whether to show detailed output logs
+        screen_index (int, optional): Screen index to capture, if None will use default (3)
     
     Returns:
         str: Path to final combined file or None if failed
@@ -234,11 +343,17 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         print(f"Recording duration: {duration} seconds")
         print(f"Final output will be saved to: {output_file}")
         
+        # Display which screen will be captured, but don't print the full device list
+        screen_devices = list_screen_devices(print_output=False)
+        screen_to_use = 4 if screen_index is None else screen_index
+        screen_name = screen_devices.get(screen_to_use, f"Unknown screen at index {screen_to_use}")
+        print(f"Screen to capture: {screen_name}")
+        
         # Prepare ffmpeg command for screen recording
         screen_cmd = ffmpeg.compile(
             ffmpeg.output(
                 ffmpeg.input(
-                    "3",  # Screen index 
+                    str(4 if screen_index is None else screen_index),  # Use provided screen index or default to 4
                     f='avfoundation',
                     framerate=30,
                     video_size='1280x720',
@@ -258,9 +373,12 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         # Add -y flag to force overwrite without prompting
         screen_cmd.insert(1, '-y')
         
+        # Always suppress ffmpeg banner and warnings, but show progress if verbose
+        screen_cmd.extend(['-hide_banner'])
+        
         # If not verbose, suppress all ffmpeg output
         if not verbose:
-            screen_cmd.extend(['-v', 'quiet'])
+            screen_cmd.extend(['-v', 'quiet', '-nostats'])
             
         # Start screen recording in background
         screen_process = subprocess.Popen(
@@ -314,12 +432,26 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--duration", type=int, default=7, help="Recording duration in seconds")
     parser.add_argument("-o", "--output", type=str, default="combined_recording.mp4", help="Output file path")
     parser.add_argument("-v", "--verbose", action="store_true", help="Show detailed logs during recording")
+    parser.add_argument("-s", "--screen", type=int, help="Screen index to capture (run with -l to see available screens)")
+    parser.add_argument("-l", "--list", action="store_true", help="List available screen and audio devices")
     
     args = parser.parse_args()
+    
+    # List devices if requested
+    if args.list:
+        print("=== Available Screen Devices ===")
+        screens = list_screen_devices(print_output=False)
+        for index, name in sorted(screens.items()):
+            print(f"[{index}] {name}")
+            
+        print("\n=== Available Audio Devices ===")
+        list_audio_devices()
+        exit(0)
     
     # Record screen and audio
     record_screen_and_audio(
         output_file=args.output, 
         duration=args.duration, 
-        verbose=args.verbose
+        verbose=args.verbose,
+        screen_index=args.screen
     )
