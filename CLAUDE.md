@@ -17,11 +17,16 @@
 - Main files:
   - menu_system.py - Handles UI and menu navigation with curses
   - voice_transcription.py - Handles voice recording functionality and keyboard shortcuts
+  - screen_audio_recorder.py - Orchestrates screen and audio recording, combining them into a final output
+- The recorders module contains core recording functionality:
+  - recorders/utils.py - Utility functions for device listing and audio/video combining
+  - recorders/recorder.py - Core functions for audio and screen recording
 - The menu system is in menu_system.py with main menu and submenus defined in the main() function
 - Functional menus should have their implementation in separate files
 - Voice transcription is the primary menu and should always be the first option
 - Keep all menus simple and minimal - avoid adding unnecessary options
 - Other files are supporting files or legacy code
+- Remember to make incremental changes rather than large rewrites
 
 ## Current Development Plans
 - Next step: Modify audio/video recording to allow stopping at any time rather than using fixed time limits

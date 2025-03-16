@@ -5,160 +5,16 @@ Records screen with ffmpeg and audio with sounddevice separately,
 then combines them for optimal quality
 """
 
-import ffmpeg
 import subprocess
-import sounddevice as sd
-import soundfile as sf
-import numpy as np
 import time
 import os
 import tempfile
+import threading
+import ffmpeg
 
-# Import utility functions from recorders module
-from recorders.utils import list_audio_devices, list_screen_devices, combine_audio_video
-
-def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
-    """
-    Record high-quality audio from default microphone until stop_event is set
-    
-    Args:
-        output_file (str): Path to save the recording
-        fs (int): Sample rate in Hz
-        verbose (bool): Whether to show detailed output logs
-        stop_event (threading.Event): Event to signal when to stop recording
-    
-    Returns:
-        str: Path to saved audio file or None if failed
-    """
-    # List available devices if verbose
-    if verbose:
-        list_audio_devices()
-    
-    # Use default device
-    device_info = sd.query_devices(kind='input')
-    print(f"Using audio device: {device_info['name']}")
-    
-    # Maximum buffer size (30 minutes of audio at given sample rate)
-    max_frames = int(1800 * fs)
-    
-    # Create empty array for recording
-    recording = np.zeros((max_frames, device_info['max_input_channels']), dtype='float32')
-    
-    print("Recording audio until screen recording completes...")
-    
-    # Start recording
-    with sd.InputStream(samplerate=fs, device=None, channels=device_info['max_input_channels'], callback=None) as stream:
-        start_time = time.time()
-        stream.start()
-        
-        # Read chunks of audio
-        chunk_size = 1024
-        offset = 0
-        
-        while offset < max_frames:
-            # Calculate remaining frames
-            remaining = max_frames - offset
-            this_chunk = min(chunk_size, remaining)
-            
-            # Read audio chunk
-            chunk, overflowed = stream.read(this_chunk)
-            if overflowed:
-                print("Warning: Audio buffer overflowed")
-            
-            # Store chunk in recording array
-            if offset + len(chunk) <= max_frames:
-                recording[offset:offset+len(chunk)] = chunk
-                
-            offset += len(chunk)
-            
-            # Check if we should stop recording
-            if stop_event and stop_event.is_set():
-                if verbose:
-                    print("Audio recording stopped by stop event")
-                break
-                
-        stream.stop()
-    
-    elapsed = time.time() - start_time
-    if verbose:
-        print(f"Audio recording complete: {elapsed:.2f} seconds")
-    
-    # Trim the recording array to actual recorded length
-    recording = recording[:offset]
-    
-    # Save to file
-    try:
-        if verbose:
-            print(f"Saving audio to {output_file}...")
-        sf.write(output_file, recording, fs)
-        if verbose:
-            print(f"Audio saved to {output_file}")
-        return output_file
-    except Exception as e:
-        print(f"Error saving audio file: {str(e)}")
-        return None
-
-def record_screen(output_file, duration, framerate=30, resolution='1280x720', screen_index=None):
-    """
-    Record screen only (no audio) using ffmpeg
-    
-    Args:
-        output_file (str): Path to save the recording
-        duration (int): Recording duration in seconds
-        framerate (int): Frame rate for recording
-        resolution (str): Video resolution in format 'WIDTHxHEIGHT'
-        screen_index (int, optional): Screen index to capture, if None will list available screens
-    
-    Returns:
-        str: Path to saved video file or None if failed
-    """
-    # List available screen devices
-    devices_info = list_screen_devices()
-    
-    # If no screen index provided, use the last available screen index
-    if screen_index is None:
-        # Get the highest screen index available (usually the last screen)
-        if devices_info:
-            screen_index = max(devices_info.keys())
-            print(f"No screen index specified. Using last available screen index {screen_index}.")
-        else:
-            # Fallback to index 1 if no screens detected
-            screen_index = 1
-            print("No screens detected. Falling back to screen index 1.")
-    
-    print(f"Using screen index: {screen_index}")
-    
-    try:
-        # Create input stream for screen only (no audio)
-        input_stream = ffmpeg.input(
-            f"{screen_index}", 
-            f='avfoundation',
-            framerate=framerate,
-            video_size=resolution,
-            capture_cursor=1,
-            pix_fmt='uyvy422',
-            t=duration
-        )
-        
-        # Output to file (video only, no audio)
-        output_stream = ffmpeg.output(
-            input_stream, 
-            output_file,
-            vcodec='h264',
-            preset='ultrafast',
-            crf=22  # Lower CRF for better quality
-        )
-        
-        print(f"Starting screen recording for {duration} seconds...")
-        print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output_stream))}")
-        
-        output_stream.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=True)
-        print(f"Screen recording completed and saved to {output_file}")
-        return output_file
-        
-    except Exception as e:
-        print(f"Error during screen recording: {str(e)}")
-        return None
+# Import utility functions and core recording functions
+from recorders.utils import combine_audio_video, list_screen_devices
+from recorders.recorder import record_audio, record_screen
 
 
 def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None):
