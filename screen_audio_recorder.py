@@ -17,15 +17,15 @@ import tempfile
 # Import utility functions from recorders module
 from recorders.utils import list_audio_devices, list_screen_devices, combine_audio_video
 
-def record_audio(output_file, duration, fs=44100, verbose=False):
+def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
     """
-    Record high-quality audio from default microphone
+    Record high-quality audio from default microphone until stop_event is set
     
     Args:
         output_file (str): Path to save the recording
-        duration (int): Recording duration in seconds
         fs (int): Sample rate in Hz
         verbose (bool): Whether to show detailed output logs
+        stop_event (threading.Event): Event to signal when to stop recording
     
     Returns:
         str: Path to saved audio file or None if failed
@@ -38,13 +38,13 @@ def record_audio(output_file, duration, fs=44100, verbose=False):
     device_info = sd.query_devices(kind='input')
     print(f"Using audio device: {device_info['name']}")
     
-    # Calculate total frames
-    frames = int(duration * fs)
+    # Maximum buffer size (30 minutes of audio at given sample rate)
+    max_frames = int(1800 * fs)
     
     # Create empty array for recording
-    recording = np.zeros((frames, device_info['max_input_channels']), dtype='float32')
+    recording = np.zeros((max_frames, device_info['max_input_channels']), dtype='float32')
     
-    print(f"Recording audio for {duration} seconds...")
+    print("Recording audio until screen recording completes...")
     
     # Start recording
     with sd.InputStream(samplerate=fs, device=None, channels=device_info['max_input_channels'], callback=None) as stream:
@@ -55,9 +55,9 @@ def record_audio(output_file, duration, fs=44100, verbose=False):
         chunk_size = 1024
         offset = 0
         
-        while offset < frames:
+        while offset < max_frames:
             # Calculate remaining frames
-            remaining = frames - offset
+            remaining = max_frames - offset
             this_chunk = min(chunk_size, remaining)
             
             # Read audio chunk
@@ -66,20 +66,25 @@ def record_audio(output_file, duration, fs=44100, verbose=False):
                 print("Warning: Audio buffer overflowed")
             
             # Store chunk in recording array
-            if offset + len(chunk) <= frames:
+            if offset + len(chunk) <= max_frames:
                 recording[offset:offset+len(chunk)] = chunk
                 
             offset += len(chunk)
             
-            # Check if duration reached
-            elapsed = time.time() - start_time
-            if elapsed >= duration:
+            # Check if we should stop recording
+            if stop_event and stop_event.is_set():
+                if verbose:
+                    print("Audio recording stopped by stop event")
                 break
                 
         stream.stop()
     
+    elapsed = time.time() - start_time
     if verbose:
         print(f"Audio recording complete: {elapsed:.2f} seconds")
+    
+    # Trim the recording array to actual recorded length
+    recording = recording[:offset]
     
     # Save to file
     try:
@@ -153,12 +158,12 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
 
 def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None):
     """
-    Record high-quality screen and audio simultaneously using threading
-    for minimal delay between start times
+    Record high-quality screen and audio simultaneously using threading,
+    with audio recording stopping when screen recording finishes
     
     Args:
         output_file (str): Final output file path
-        duration (int): Recording duration in seconds
+        duration (int): Recording duration in seconds for screen recording
         verbose (bool): Whether to show detailed output logs
         screen_index (int, optional): Screen index to capture, if None will use default (4)
     
@@ -178,9 +183,13 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
     # Variable to hold the result of audio recording
     audio_result = [None]  # Use list to allow modification in thread
     
+    # Create an event to signal when screen recording is done
+    stop_event = threading.Event()
+    
     try:
         print("=== Starting High-Quality Recording ===")
-        print(f"Recording duration: {duration} seconds")
+        print(f"Screen recording duration: {duration} seconds")
+        print("Audio will record until screen recording completes")
         print(f"Final output will be saved to: {output_file}")
         
         # Display which screen will be captured
@@ -221,7 +230,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         # Define function to run audio recording in a thread
         def audio_recording_thread():
             try:
-                audio_result[0] = record_audio(temp_audio_path, duration, verbose=verbose)
+                audio_result[0] = record_audio(temp_audio_path, verbose=verbose, stop_event=stop_event)
             except Exception as e:
                 print(f"Error in audio recording thread: {str(e)}")
                 audio_result[0] = None
@@ -241,9 +250,15 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
             stderr=subprocess.DEVNULL if not verbose else None
         )
         
-        # Wait for both processes to complete
-        audio_thread.join()
+        # Wait for screen process to complete
         screen_process.wait()
+        
+        # Signal audio thread to stop recording
+        print("Screen recording complete, stopping audio...")
+        stop_event.set()
+        
+        # Wait for audio thread to complete
+        audio_thread.join()
         
         # Check if both recordings succeeded
         if not os.path.exists(temp_video_path) or not audio_result[0]:
@@ -270,6 +285,9 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         
     except Exception as e:
         print(f"Error in recording process: {str(e)}")
+        # Set stop event to end audio recording if an error occurs
+        stop_event.set()
+        
         # Clean up temporary files
         try:
             os.remove(temp_video_path)
