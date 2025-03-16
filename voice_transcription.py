@@ -19,43 +19,39 @@ class VoiceTranscriptionFunctions:
     def start_keyboard_listener(self):
         """Start listening for the keyboard shortcut"""
         # Define the hotkey combinations
-        SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('z')}
-        TEST_COMBO = {keyboard.Key.alt, keyboard.KeyCode.from_char('x')}
+        SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('z')}
         current = set()
         
         def on_press(key):
             try:
-                # Add key to current set if it's part of any shortcut
-                if key in SHORTCUT_COMBO or key in TEST_COMBO:
+                # Add key to current set if it's part of the shortcut
+                if key in SHORTCUT_COMBO:
                     current.add(key)
                 
-                # Check for special character "≈" which is produced by Alt+X on Mac
-                try:
-                    if isinstance(key, keyboard.KeyCode) and key.char == "≈":
-                        print("Test shortcut triggered: Alt+X (≈)")
-                        
-                        # Create a keyboard controller to send backspace
-                        kb = Controller()
-                        
-                        # Send backspace to delete the "≈" character
-                        kb.press(Key.backspace)
-                        time.sleep(0.05)
-                        kb.release(Key.backspace)
-                        
-                        # Show the test screen
-                        self.show_test_screen()
-                        return
-                except Exception as e:
-                    print(f"Error handling special character: {e}")
-                    pass
+                # Handle special character or key combination
+                should_trigger_recording = False
                 
-                # Check for shortcuts
-                if all(k in current for k in SHORTCUT_COMBO):
-                    print("Keyboard shortcut triggered: ⇧⌘Z")
+                # Check for special character "¸" which is produced by Shift+Alt+Z on Mac
+                if isinstance(key, keyboard.KeyCode) and hasattr(key, 'char') and key.char == "¸":
+                    print("Shortcut triggered: Shift+Alt+Z (¸)")
+                    
+                    # Create a keyboard controller to send backspace
+                    kb = Controller()
+                    
+                    # Send backspace to delete the "¸" character
+                    kb.press(Key.backspace)
+                    kb.release(Key.backspace)
+                    
+                    should_trigger_recording = True
+                # Check for key combination
+                elif all(k in current for k in SHORTCUT_COMBO):
+                    print("Keyboard shortcut triggered: ⇧⌥Z")
+                    should_trigger_recording = True
+                
+                # Trigger recording if either condition was met
+                if should_trigger_recording:
                     self.toggle_recording()
-                elif all(k in current for k in TEST_COMBO):
-                    print("Test shortcut triggered: Alt+X")
-                    self.show_test_screen()
+                    
             except Exception as e:
                 print(f"Error in keyboard listener: {e}")
         
@@ -175,7 +171,7 @@ class VoiceTranscriptionFunctions:
             stdscr.addstr(h // 2 - 2, x_pos, recording_msg)
         
         # Instructions
-        instruction = "Press ⇧⌘Z to stop recording"
+        instruction = "Press ⇧⌥Z to stop recording"
         x_pos = (w - len(instruction)) // 2
         if x_pos > 0:
             stdscr.addstr(h // 2 + 2, x_pos, instruction)
@@ -188,55 +184,6 @@ class VoiceTranscriptionFunctions:
             return ["No transcriptions performed yet"]
         return self.results
     
-    def show_test_screen(self):
-        """Display a test screen when the test shortcut is pressed"""
-        if not self.menu_system or not self.stdscr:
-            print("Cannot show test screen - missing menu system or screen reference")
-            return
-        
-        # Switch to test screen menu
-        self.menu_system.current_menu = "test_screen"
-        
-        # Show the test screen UI
-        try:
-            self.display_test_screen(self.stdscr)
-        except Exception as e:
-            print(f"Error showing test screen: {e}")
-    
-    def display_test_screen(self, stdscr):
-        """Display a simple test interface"""
-        h, w = stdscr.getmaxyx()
-        max_y = h - 1
-        max_x = w - 1
-        
-        # Clear screen
-        stdscr.clear()
-        
-        # Draw border
-        stdscr.box()
-        
-        # Draw title
-        title = " TEST SCREEN "
-        x_pos = (w - len(title)) // 2
-        if x_pos > 0:
-            if curses.has_colors():
-                stdscr.addstr(0, x_pos, title, curses.color_pair(2) | curses.A_BOLD)
-            else:
-                stdscr.addstr(0, x_pos, title, curses.A_BOLD)
-        
-        # Message
-        test_msg = "This is a test screen triggered by Alt+X"
-        x_pos = (w - len(test_msg)) // 2
-        if x_pos > 0:
-            stdscr.addstr(h // 2 - 2, x_pos, test_msg)
-        
-        # Instructions
-        instruction = "Press any key to return to the voice transcription menu"
-        x_pos = (w - len(instruction)) // 2
-        if x_pos > 0:
-            stdscr.addstr(h // 2 + 2, x_pos, instruction)
-        
-        stdscr.refresh()
 
 # Create a singleton instance
 voice_transcription_functions = VoiceTranscriptionFunctions()
