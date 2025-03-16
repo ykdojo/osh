@@ -115,11 +115,16 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
     # List available screen devices
     devices_info = list_screen_devices()
     
-    # If no screen index provided, prompt user to select or use default
+    # If no screen index provided, use the last available screen index
     if screen_index is None:
-        # Default to screen index 4 (macOS "Capture screen 1")
-        screen_index = 4
-        print("No screen index specified. Using default screen index 4.")
+        # Get the highest screen index available (usually the last screen)
+        if devices_info:
+            screen_index = max(devices_info.keys())
+            print(f"No screen index specified. Using last available screen index {screen_index}.")
+        else:
+            # Fallback to index 1 if no screens detected
+            screen_index = 1
+            print("No screens detected. Falling back to screen index 1.")
     
     print(f"Using screen index: {screen_index}")
     
@@ -194,7 +199,18 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         
         # Display which screen will be captured
         screen_devices = list_screen_devices(print_output=False)
-        screen_to_use = 4 if screen_index is None else screen_index
+        
+        # If no screen index provided, use the last available screen index
+        if screen_index is None:
+            # Get the highest screen index available (usually the last screen)
+            if screen_devices:
+                screen_to_use = max(screen_devices.keys())
+            else:
+                # Fallback to index 1 if no screens detected
+                screen_to_use = 1
+        else:
+            screen_to_use = screen_index
+            
         screen_name = screen_devices.get(screen_to_use, f"Unknown screen at index {screen_to_use}")
         print(f"Screen to capture: {screen_name}")
         
@@ -202,7 +218,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         screen_cmd = ffmpeg.compile(
             ffmpeg.output(
                 ffmpeg.input(
-                    str(4 if screen_index is None else screen_index),
+                    str(screen_to_use),
                     f='avfoundation',
                     framerate=30,
                     video_size='1280x720',
