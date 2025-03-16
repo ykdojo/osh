@@ -38,7 +38,7 @@ def list_screen_devices():
         print(f"Error listing devices: {str(e)}")
         return None
 
-def record_audio(output_file, duration, fs=44100):
+def record_audio(output_file, duration, fs=44100, verbose=False):
     """
     Record high-quality audio from default microphone
     
@@ -46,12 +46,14 @@ def record_audio(output_file, duration, fs=44100):
         output_file (str): Path to save the recording
         duration (int): Recording duration in seconds
         fs (int): Sample rate in Hz
+        verbose (bool): Whether to show detailed output logs
     
     Returns:
         str: Path to saved audio file or None if failed
     """
-    # List available devices
-    list_audio_devices()
+    # List available devices if verbose
+    if verbose:
+        list_audio_devices()
     
     # Use default device
     device_info = sd.query_devices(kind='input')
@@ -63,7 +65,7 @@ def record_audio(output_file, duration, fs=44100):
     # Create empty array for recording
     recording = np.zeros((frames, device_info['max_input_channels']), dtype='float32')
     
-    print(f"Starting {duration} second audio recording...")
+    print(f"Recording audio for {duration} seconds...")
     
     # Start recording
     with sd.InputStream(samplerate=fs, device=None, channels=device_info['max_input_channels'], callback=None) as stream:
@@ -97,13 +99,16 @@ def record_audio(output_file, duration, fs=44100):
                 
         stream.stop()
     
-    print(f"Audio recording complete: {elapsed:.2f} seconds")
+    if verbose:
+        print(f"Audio recording complete: {elapsed:.2f} seconds")
     
     # Save to file
     try:
-        print(f"Saving audio to {output_file}...")
+        if verbose:
+            print(f"Saving audio to {output_file}...")
         sf.write(output_file, recording, fs)
-        print(f"Audio saved to {output_file}")
+        if verbose:
+            print(f"Audio saved to {output_file}")
         return output_file
     except Exception as e:
         print(f"Error saving audio file: {str(e)}")
@@ -162,7 +167,7 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720'):
         print(f"Error during screen recording: {str(e)}")
         return None
 
-def combine_audio_video(video_file, audio_file, output_file):
+def combine_audio_video(video_file, audio_file, output_file, verbose=False):
     """
     Combine separate video and audio files into a single output file
     
@@ -170,6 +175,7 @@ def combine_audio_video(video_file, audio_file, output_file):
         video_file (str): Path to video file
         audio_file (str): Path to audio file
         output_file (str): Path to output combined file
+        verbose (bool): Whether to show detailed output logs
     
     Returns:
         str: Path to combined file or None if failed
@@ -192,23 +198,26 @@ def combine_audio_video(video_file, audio_file, output_file):
         )
         
         print(f"Combining video and audio into {output_file}...")
-        print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output))}")
+        if verbose:
+            print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output))}")
         
-        output.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=True)
-        print(f"Combined file saved to: {output_file}")
+        output.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=not verbose)
+        if verbose:
+            print(f"Combined file saved to: {output_file}")
         return output_file
         
     except Exception as e:
         print(f"Error combining audio and video: {str(e)}")
         return None
 
-def record_screen_and_audio(output_file='combined_recording.mp4', duration=10):
+def record_screen_and_audio(output_file='combined_recording.mp4', duration=10, verbose=False):
     """
     Record high-quality screen and audio separately, then combine them
     
     Args:
         output_file (str): Final output file path
         duration (int): Recording duration in seconds
+        verbose (bool): Whether to show detailed output logs
     
     Returns:
         str: Path to final combined file or None if failed
@@ -248,11 +257,20 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=10):
         
         # Add -y flag to force overwrite without prompting
         screen_cmd.insert(1, '-y')
+        
+        # If not verbose, suppress all ffmpeg output
+        if not verbose:
+            screen_cmd.extend(['-v', 'quiet'])
+            
         # Start screen recording in background
-        screen_process = subprocess.Popen(screen_cmd)
+        screen_process = subprocess.Popen(
+            screen_cmd,
+            stdout=subprocess.DEVNULL if not verbose else None,
+            stderr=subprocess.DEVNULL if not verbose else None
+        )
         
         # Immediately start audio recording
-        audio_file = record_audio(temp_audio_path, duration)
+        audio_file = record_audio(temp_audio_path, duration, verbose=verbose)
         
         # Wait for screen recording to finish if it hasn't already
         screen_process.wait()
@@ -262,7 +280,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=10):
             return None
         
         print("\n3. Combining video and audio...")
-        result = combine_audio_video(temp_video_path, audio_file, output_file)
+        result = combine_audio_video(temp_video_path, audio_file, output_file, verbose=verbose)
         
         # Clean up temporary files
         try:
@@ -290,5 +308,18 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=10):
         return None
 
 if __name__ == "__main__":
-    # Record screen and audio for 10 seconds
-    record_screen_and_audio(duration=10)
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="High-quality screen and audio recorder")
+    parser.add_argument("-d", "--duration", type=int, default=10, help="Recording duration in seconds")
+    parser.add_argument("-o", "--output", type=str, default="combined_recording.mp4", help="Output file path")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Show detailed logs during recording")
+    
+    args = parser.parse_args()
+    
+    # Record screen and audio
+    record_screen_and_audio(
+        output_file=args.output, 
+        duration=args.duration, 
+        verbose=args.verbose
+    )
