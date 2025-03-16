@@ -18,7 +18,7 @@ class VoiceTranscriptionFunctions:
         """Start listening for the keyboard shortcut"""
         # Define the hotkey combinations
         SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('z')}
-        TEST_COMBO = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('x')}
+        TEST_COMBO = {keyboard.Key.alt}
         current = set()
         
         def on_press(key):
@@ -31,8 +31,8 @@ class VoiceTranscriptionFunctions:
                 if all(k in current for k in SHORTCUT_COMBO):
                     print("Keyboard shortcut triggered: ⇧⌘Z")
                     self.toggle_recording()
-                elif all(k in current for k in TEST_COMBO):
-                    print("Test shortcut triggered: ⇧⌘X")
+                elif key == keyboard.Key.alt:
+                    print("Test shortcut triggered: Alt")
                     self.show_test_screen()
             except Exception as e:
                 print(f"Error in keyboard listener: {e}")
@@ -203,7 +203,7 @@ class VoiceTranscriptionFunctions:
                 stdscr.addstr(0, x_pos, title, curses.A_BOLD)
         
         # Message
-        test_msg = "This is a test screen triggered by ⇧⌘X"
+        test_msg = "This is a test screen triggered by Alt key"
         x_pos = (w - len(test_msg)) // 2
         if x_pos > 0:
             stdscr.addstr(h // 2 - 2, x_pos, test_msg)

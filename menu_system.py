@@ -222,7 +222,7 @@ def main(stdscr):
     voice_menu = Menu("VOICE TRANSCRIPTION")
     voice_menu.items = [
         "Start Transcribing (⇧⌘Z)",
-        "Test Screen (⇧⌘X)",
+        "Test Screen (Alt)",
         "Back to Main Menu"
     ]
     menu_system.add_menu("menu_voice", voice_menu)
