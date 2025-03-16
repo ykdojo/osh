@@ -252,6 +252,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         
         # Wait for screen process to complete
         screen_process.wait()
+        screen_complete_time = time.time()
         
         # Signal audio thread to stop recording
         print("Screen recording complete, stopping audio...")
@@ -259,6 +260,11 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         
         # Wait for audio thread to complete
         audio_thread.join()
+        audio_complete_time = time.time()
+        
+        # Print the time difference
+        time_diff = audio_complete_time - screen_complete_time
+        print(f"Time difference between screen and audio completion: {time_diff:.4f} seconds")
         
         # Check if both recordings succeeded
         if not os.path.exists(temp_video_path) or not audio_result[0]:
