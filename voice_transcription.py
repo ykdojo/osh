@@ -18,7 +18,7 @@ class VoiceTranscriptionFunctions:
         """Start listening for the keyboard shortcut"""
         # Define the hotkey combinations
         SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.cmd, keyboard.KeyCode.from_char('z')}
-        TEST_COMBO = {keyboard.Key.alt}
+        TEST_COMBO = {keyboard.Key.alt, keyboard.KeyCode.from_char('x')}
         current = set()
         
         def on_press(key):
@@ -27,12 +27,21 @@ class VoiceTranscriptionFunctions:
                 if key in SHORTCUT_COMBO or key in TEST_COMBO:
                     current.add(key)
                 
+                # Check for special character "≈" which is produced by Alt+X on Mac
+                try:
+                    if isinstance(key, keyboard.KeyCode) and key.char == "≈":
+                        print("Test shortcut triggered: Alt+X (≈)")
+                        self.show_test_screen()
+                        return
+                except:
+                    pass
+                
                 # Check for shortcuts
                 if all(k in current for k in SHORTCUT_COMBO):
                     print("Keyboard shortcut triggered: ⇧⌘Z")
                     self.toggle_recording()
-                elif key == keyboard.Key.alt:
-                    print("Test shortcut triggered: Alt")
+                elif all(k in current for k in TEST_COMBO):
+                    print("Test shortcut triggered: Alt+X")
                     self.show_test_screen()
             except Exception as e:
                 print(f"Error in keyboard listener: {e}")
@@ -203,7 +212,7 @@ class VoiceTranscriptionFunctions:
                 stdscr.addstr(0, x_pos, title, curses.A_BOLD)
         
         # Message
-        test_msg = "This is a test screen triggered by Alt key"
+        test_msg = "This is a test screen triggered by Alt+X"
         x_pos = (w - len(test_msg)) // 2
         if x_pos > 0:
             stdscr.addstr(h // 2 - 2, x_pos, test_msg)
