@@ -4,3 +4,6 @@ python-dotenv>=1.0.0
 pynput>=1.7.6
 pyaudio>=0.2.13
 ffmpeg-python>=0.2.0
+sounddevice>=0.5.1
+soundfile>=0.13.1
+numpy>=1.20.0
