@@ -24,9 +24,9 @@
 - Other files are supporting files or legacy code
 
 ## Current Development Plans
-- Next step: Implement voice recording functionality
-- Step after: Implement transcription of recorded voice
-- Focus on getting voice recording working reliably before adding transcription
+- Next step: Modify audio/video recording to allow stopping at any time rather than using fixed time limits
+- Step after: Implement transcription of recorded voice with Gemini AI
+- Focus on flexible, user-controlled recording before expanding transcription features
 
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones
