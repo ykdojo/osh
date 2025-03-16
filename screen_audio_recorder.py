@@ -15,7 +15,7 @@ import os
 import tempfile
 
 # Import utility functions from recorders module
-from recorders.utils import list_audio_devices, list_screen_devices
+from recorders.utils import list_audio_devices, list_screen_devices, combine_audio_video
 
 def record_audio(output_file, duration, fs=44100, verbose=False):
     """
@@ -150,48 +150,6 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
         print(f"Error during screen recording: {str(e)}")
         return None
 
-def combine_audio_video(video_file, audio_file, output_file, verbose=False):
-    """
-    Combine separate video and audio files into a single output file
-    
-    Args:
-        video_file (str): Path to video file
-        audio_file (str): Path to audio file
-        output_file (str): Path to output combined file
-        verbose (bool): Whether to show detailed output logs
-    
-    Returns:
-        str: Path to combined file or None if failed
-    """
-    try:
-        # Input video stream
-        video_stream = ffmpeg.input(video_file)
-        
-        # Input audio stream
-        audio_stream = ffmpeg.input(audio_file)
-        
-        # Combine streams
-        output = ffmpeg.output(
-            video_stream, 
-            audio_stream, 
-            output_file,
-            vcodec='copy',  # Copy video without re-encoding
-            acodec='aac',   # Convert audio to AAC
-            strict='experimental'
-        )
-        
-        print(f"Combining video and audio into {output_file}...")
-        if verbose:
-            print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output))}")
-        
-        output.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=not verbose)
-        if verbose:
-            print(f"Combined file saved to: {output_file}")
-        return output_file
-        
-    except Exception as e:
-        print(f"Error combining audio and video: {str(e)}")
-        return None
 
 def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None):
     """

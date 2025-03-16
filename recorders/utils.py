@@ -5,6 +5,7 @@ Utility functions for recording devices
 
 import sounddevice as sd
 import subprocess
+import ffmpeg
 
 def list_audio_devices():
     """List all available audio input devices"""
@@ -133,3 +134,46 @@ def list_screen_devices(print_output=True):
         if print_output:
             print(f"Error listing devices: {str(e)}")
         return {}
+
+def combine_audio_video(video_file, audio_file, output_file, verbose=False):
+    """
+    Combine separate video and audio files into a single output file
+    
+    Args:
+        video_file (str): Path to video file
+        audio_file (str): Path to audio file
+        output_file (str): Path to output combined file
+        verbose (bool): Whether to show detailed output logs
+    
+    Returns:
+        str: Path to combined file or None if failed
+    """
+    try:
+        # Input video stream
+        video_stream = ffmpeg.input(video_file)
+        
+        # Input audio stream
+        audio_stream = ffmpeg.input(audio_file)
+        
+        # Combine streams
+        output = ffmpeg.output(
+            video_stream, 
+            audio_stream, 
+            output_file,
+            vcodec='copy',  # Copy video without re-encoding
+            acodec='aac',   # Convert audio to AAC
+            strict='experimental'
+        )
+        
+        print(f"Combining video and audio into {output_file}...")
+        if verbose:
+            print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output))}")
+        
+        output.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=not verbose)
+        if verbose:
+            print(f"Combined file saved to: {output_file}")
+        return output_file
+        
+    except Exception as e:
+        print(f"Error combining audio and video: {str(e)}")
+        return None
