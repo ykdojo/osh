@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import curses
 import threading
+import time
 from pynput import keyboard
+from pynput.keyboard import Controller, Key
 
 class VoiceTranscriptionFunctions:
     """Voice transcription functionality with keyboard shortcut support"""
@@ -31,9 +33,20 @@ class VoiceTranscriptionFunctions:
                 try:
                     if isinstance(key, keyboard.KeyCode) and key.char == "≈":
                         print("Test shortcut triggered: Alt+X (≈)")
+                        
+                        # Create a keyboard controller to send backspace
+                        kb = Controller()
+                        
+                        # Send backspace to delete the "≈" character
+                        kb.press(Key.backspace)
+                        time.sleep(0.05)
+                        kb.release(Key.backspace)
+                        
+                        # Show the test screen
                         self.show_test_screen()
                         return
-                except:
+                except Exception as e:
+                    print(f"Error handling special character: {e}")
                     pass
                 
                 # Check for shortcuts
