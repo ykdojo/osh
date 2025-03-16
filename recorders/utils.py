@@ -243,7 +243,6 @@ def combine_audio_video(video_file, audio_file, output_file, verbose=False, time
             output_file
         ]
         
-        print(f"Combining video and audio into {output_file}...")
         if verbose:
             print(f"Command: {' '.join(output_cmd)}")
         

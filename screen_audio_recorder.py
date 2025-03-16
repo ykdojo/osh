@@ -13,11 +13,11 @@ import threading
 import ffmpeg
 
 # Import utility functions and core recording functions
-from recorders.utils import combine_audio_video, list_screen_devices
+from recorders.utils import combine_audio_video, list_screen_devices, list_audio_devices
 from recorders.recorder import record_audio, record_screen
 
 
-def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None):
+def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None, manual_interrupt_key=None):
     """
     Record high-quality screen and audio simultaneously using threading,
     with audio recording stopping when screen recording finishes
@@ -26,7 +26,8 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         output_file (str): Final output file path
         duration (int): Recording duration in seconds for screen recording
         verbose (bool): Whether to show detailed output logs
-        screen_index (int, optional): Screen index to capture, if None will use default (4)
+        screen_index (int, optional): Screen index to capture, if None will use default
+        manual_interrupt_key (str, optional): Key to press to manually stop recording
     
     Returns:
         str: Path to final combined file or None if failed
@@ -47,10 +48,15 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
     # Create an event to signal when screen recording is done
     stop_event = threading.Event()
     
+    # Create an event to allow manual interruption
+    manual_stop_event = threading.Event()
+    
     try:
         print("=== Starting High-Quality Recording ===")
         print(f"Screen recording duration: {duration} seconds")
         print("Audio will record until screen recording completes")
+        if manual_interrupt_key:
+            print(f"Press '{manual_interrupt_key}' to stop recording early")
         print(f"Final output will be saved to: {output_file}")
         
         # Display which screen will be captured
@@ -70,35 +76,6 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         screen_name = screen_devices.get(screen_to_use, f"Unknown screen at index {screen_to_use}")
         print(f"Screen to capture: {screen_name}")
         
-        # Prepare ffmpeg command for screen recording
-        screen_cmd = ffmpeg.compile(
-            ffmpeg.output(
-                ffmpeg.input(
-                    str(screen_to_use),
-                    f='avfoundation',
-                    framerate=30,
-                    video_size='1280x720',
-                    capture_cursor=1,
-                    pix_fmt='uyvy422',
-                    t=duration
-                ),
-                temp_video_path,
-                vcodec='h264',
-                preset='ultrafast',
-                crf=22
-            )
-        )
-        
-        # Add -y flag to force overwrite without prompting
-        screen_cmd.insert(1, '-y')
-        
-        # Always suppress ffmpeg banner and warnings, but show progress if verbose
-        screen_cmd.extend(['-hide_banner'])
-        
-        # If not verbose, suppress all ffmpeg output
-        if not verbose:
-            screen_cmd.extend(['-v', 'quiet', '-nostats'])
-        
         # Define function to run audio recording in a thread
         def audio_recording_thread():
             try:
@@ -106,28 +83,53 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
             except Exception as e:
                 print(f"Error in audio recording thread: {str(e)}")
                 audio_result[0] = None
+                
+        # Define function to monitor for keyboard interrupt if manual_interrupt_key is provided
+        if manual_interrupt_key:
+            try:
+                from pynput import keyboard
+                
+                def on_press(key):
+                    try:
+                        # Check if the pressed key matches the interrupt key
+                        if hasattr(key, 'char') and key.char == manual_interrupt_key:
+                            print(f"\nManual interrupt key '{manual_interrupt_key}' pressed.")
+                            manual_stop_event.set()
+                            return False  # Stop listener
+                    except AttributeError:
+                        pass  # Special key, ignore
+                
+                # Start keyboard listener in a separate thread
+                keyboard_listener = keyboard.Listener(on_press=on_press)
+                keyboard_listener.daemon = True
+                keyboard_listener.start()
+            except ImportError:
+                print("Warning: pynput module not found. Manual interrupt disabled.")
+                manual_stop_event = None
         
-        # Create threads for audio and video recording
+        # Create thread for audio recording
         audio_thread = threading.Thread(target=audio_recording_thread)
         
         print("\nStarting recording now...")
         
-        # Start both threads almost simultaneously for minimal delay
+        # Start audio recording thread
         audio_thread.start()
         
-        # Start screen recording
-        screen_process = subprocess.Popen(
-            screen_cmd,
-            stdout=subprocess.DEVNULL if not verbose else None,
-            stderr=subprocess.DEVNULL if not verbose else None
+        # Start screen recording using the updated function and ensure all output is suppressed
+        # when not in verbose mode by passing verbose flag
+        screen_result = record_screen(
+            temp_video_path, 
+            duration, 
+            framerate=30, 
+            resolution='1280x720', 
+            screen_index=screen_to_use,
+            stop_event=manual_stop_event,
+            verbose=verbose
         )
         
-        # Wait for screen process to complete
-        screen_process.wait()
         screen_complete_time = time.time()
         
-        # Signal audio thread to stop recording
-        print("Screen recording complete, stopping audio...")
+        # Signal audio thread to stop recording without duplicate message
         stop_event.set()
         
         # Wait for audio thread to complete
@@ -143,7 +145,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
             print("Error: Screen or audio recording failed")
             return None
         
-        print("\n3. Combining video and audio...")
+        print("\nCombining video and audio...")
         result = combine_audio_video(temp_video_path, audio_result[0], output_file, verbose=verbose, time_diff=time_diff)
         
         # Clean up temporary files
@@ -183,6 +185,8 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", action="store_true", help="Show detailed logs during recording")
     parser.add_argument("-s", "--screen", type=int, help="Screen index to capture (run with -l to see available screens)")
     parser.add_argument("-l", "--list", action="store_true", help="List available screen and audio devices")
+    parser.add_argument("-k", "--key", type=str, default="q", help="Key to press to manually stop recording (defaults to 'q')")
+    parser.add_argument("--no-manual-interrupt", action="store_true", help="Disable manual interrupt capability")
     
     args = parser.parse_args()
     
@@ -197,10 +201,14 @@ if __name__ == "__main__":
         list_audio_devices()
         exit(0)
     
+    # Set manual interrupt key if not disabled
+    manual_interrupt_key = None if args.no_manual_interrupt else args.key
+    
     # Record screen and audio
     record_screen_and_audio(
         output_file=args.output, 
         duration=args.duration, 
         verbose=args.verbose,
-        screen_index=args.screen
+        screen_index=args.screen,
+        manual_interrupt_key=manual_interrupt_key
     )

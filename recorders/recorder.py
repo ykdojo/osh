@@ -31,7 +31,9 @@ def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
     
     # Use default device
     device_info = sd.query_devices(kind='input')
-    print(f"Using audio device: {device_info['name']}")
+    
+    if verbose:
+        print(f"Using audio device: {device_info['name']}")
     
     # Maximum buffer size (30 minutes of audio at given sample rate)
     max_frames = int(1800 * fs)
@@ -39,7 +41,8 @@ def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
     # Create empty array for recording
     recording = np.zeros((max_frames, device_info['max_input_channels']), dtype='float32')
     
-    print("Recording audio until screen recording completes...")
+    if verbose:
+        print("Recording audio until screen recording completes...")
     
     # Start recording
     with sd.InputStream(samplerate=fs, device=None, channels=device_info['max_input_channels'], callback=None) as stream:
@@ -57,7 +60,7 @@ def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
             
             # Read audio chunk
             chunk, overflowed = stream.read(this_chunk)
-            if overflowed:
+            if overflowed and verbose:
                 print("Warning: Audio buffer overflowed")
             
             # Store chunk in recording array
@@ -93,7 +96,7 @@ def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
         print(f"Error saving audio file: {str(e)}")
         return None
 
-def record_screen(output_file, duration, framerate=30, resolution='1280x720', screen_index=None):
+def record_screen(output_file, duration, framerate=30, resolution='1280x720', screen_index=None, stop_event=None, verbose=False):
     """
     Record screen only (no audio) using ffmpeg
     
@@ -103,52 +106,120 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
         framerate (int): Frame rate for recording
         resolution (str): Video resolution in format 'WIDTHxHEIGHT'
         screen_index (int, optional): Screen index to capture, if None will list available screens
+        stop_event (threading.Event, optional): Event to signal manual interruption
+        verbose (bool, optional): Whether to show detailed output logs
     
     Returns:
         str: Path to saved video file or None if failed
     """
     # List available screen devices
-    devices_info = list_screen_devices()
+    devices_info = list_screen_devices(print_output=False)
     
     # If no screen index provided, use the last available screen index
     if screen_index is None:
         # Get the highest screen index available (usually the last screen)
         if devices_info:
             screen_index = max(devices_info.keys())
-            print(f"No screen index specified. Using last available screen index {screen_index}.")
+            if verbose:
+                print(f"No screen index specified. Using last available screen index {screen_index}.")
         else:
             # Fallback to index 1 if no screens detected
             screen_index = 1
-            print("No screens detected. Falling back to screen index 1.")
+            if verbose:
+                print("No screens detected. Falling back to screen index 1.")
     
-    print(f"Using screen index: {screen_index}")
+    if verbose:
+        print(f"Using screen index: {screen_index}")
     
     try:
+        import subprocess
+        import threading
+        import signal
+        import os
+        
+        # We can't directly interrupt ffmpeg using stop_event with ffmpeg module,
+        # so create a subprocess and manage it manually
+        
         # Create input stream for screen only (no audio)
-        input_stream = ffmpeg.input(
-            f"{screen_index}", 
-            f='avfoundation',
-            framerate=framerate,
-            video_size=resolution,
-            capture_cursor=1,
-            pix_fmt='uyvy422',
-            t=duration
-        )
+        cmd = [
+            'ffmpeg', '-y',
+            '-f', 'avfoundation',
+            '-framerate', str(framerate),
+            '-video_size', resolution,
+            '-capture_cursor', '1',
+            '-pix_fmt', 'uyvy422',
+            '-t', str(duration),
+            '-i', f"{screen_index}",
+            '-vcodec', 'h264',
+            '-preset', 'ultrafast',
+            '-crf', '22',
+            output_file
+        ]
         
-        # Output to file (video only, no audio)
-        output_stream = ffmpeg.output(
-            input_stream, 
-            output_file,
-            vcodec='h264',
-            preset='ultrafast',
-            crf=22  # Lower CRF for better quality
-        )
+        # Add flags to hide ffmpeg output unless verbose is enabled
+        if not verbose:
+            cmd.insert(2, '-hide_banner')
+            cmd.insert(3, '-loglevel')
+            cmd.insert(4, 'error')  # Only show errors
+            cmd.insert(5, '-nostats')
         
-        print(f"Starting screen recording for {duration} seconds...")
-        print(f"Running ffmpeg command: {' '.join(ffmpeg.compile(output_stream))}")
+        if verbose:
+            print(f"Starting screen recording for up to {duration} seconds...")
+            print(f"Running ffmpeg command: {' '.join(cmd)}")
+        else:
+            print(f"Recording screen for up to {duration} seconds...")
+            
+        if stop_event:
+            print(f"Press the designated key to stop recording early")
         
-        output_stream.run(capture_stdout=True, capture_stderr=True, overwrite_output=True, quiet=True)
-        print(f"Screen recording completed and saved to {output_file}")
+        # Start ffmpeg process with appropriate redirection
+        if verbose:
+            process = subprocess.Popen(cmd)
+        else:
+            # Make sure we completely suppress all output when not in verbose mode
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        
+        # Create a function to monitor stop_event
+        if stop_event:
+            def monitor_stop_event():
+                stop_event.wait()  # Wait until stop_event is set
+                if process.poll() is None:  # If process is still running
+                    print("Manual stop requested, terminating recording...")
+                    # Send SIGTERM to gracefully stop ffmpeg
+                    if os.name == 'nt':  # Windows
+                        process.terminate()
+                    else:  # Unix/Mac
+                        os.kill(process.pid, signal.SIGTERM)
+            
+            # Start monitoring thread
+            monitor_thread = threading.Thread(target=monitor_stop_event)
+            monitor_thread.daemon = True
+            monitor_thread.start()
+        
+        # Wait for process to complete
+        process.wait()
+        
+        # Check return code
+        if process.returncode != 0 and process.returncode != -15:  # -15 is for SIGTERM which is ok
+            if verbose:
+                if hasattr(process, 'stderr') and process.stderr:
+                    stderr = process.stderr.read().decode('utf-8')
+                    if "Interrupt" not in stderr and "Operation not permitted" not in stderr:
+                        print(f"Error during screen recording: {stderr}")
+                        return None
+                else:
+                    print(f"Error during screen recording (return code: {process.returncode})")
+                    return None
+        
+        if verbose:
+            print(f"Screen recording completed and saved to {output_file}")
+        else:
+            print("Screen recording completed")
+            
         return output_file
         
     except Exception as e:
