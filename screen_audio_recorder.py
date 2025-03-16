@@ -210,7 +210,7 @@ def combine_audio_video(video_file, audio_file, output_file, verbose=False):
         print(f"Error combining audio and video: {str(e)}")
         return None
 
-def record_screen_and_audio(output_file='combined_recording.mp4', duration=10, verbose=False):
+def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False):
     """
     Record high-quality screen and audio separately, then combine them
     
@@ -311,7 +311,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="High-quality screen and audio recorder")
-    parser.add_argument("-d", "--duration", type=int, default=10, help="Recording duration in seconds")
+    parser.add_argument("-d", "--duration", type=int, default=7, help="Recording duration in seconds")
     parser.add_argument("-o", "--output", type=str, default="combined_recording.mp4", help="Output file path")
     parser.add_argument("-v", "--verbose", action="store_true", help="Show detailed logs during recording")
     
