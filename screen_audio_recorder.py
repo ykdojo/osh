@@ -153,17 +153,21 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
 
 def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None):
     """
-    Record high-quality screen and audio separately, then combine them
+    Record high-quality screen and audio simultaneously using threading
+    for minimal delay between start times
     
     Args:
         output_file (str): Final output file path
         duration (int): Recording duration in seconds
         verbose (bool): Whether to show detailed output logs
-        screen_index (int, optional): Screen index to capture, if None will use default (3)
+        screen_index (int, optional): Screen index to capture, if None will use default (4)
     
     Returns:
         str: Path to final combined file or None if failed
     """
+    # Import threading here to avoid global import
+    import threading
+    
     # Create temporary files
     with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as temp_video:
         temp_video_path = temp_video.name
@@ -171,12 +175,15 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
     with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
         temp_audio_path = temp_audio.name
     
+    # Variable to hold the result of audio recording
+    audio_result = [None]  # Use list to allow modification in thread
+    
     try:
         print("=== Starting High-Quality Recording ===")
         print(f"Recording duration: {duration} seconds")
         print(f"Final output will be saved to: {output_file}")
         
-        # Display which screen will be captured, but don't print the full device list
+        # Display which screen will be captured
         screen_devices = list_screen_devices(print_output=False)
         screen_to_use = 4 if screen_index is None else screen_index
         screen_name = screen_devices.get(screen_to_use, f"Unknown screen at index {screen_to_use}")
@@ -186,7 +193,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         screen_cmd = ffmpeg.compile(
             ffmpeg.output(
                 ffmpeg.input(
-                    str(4 if screen_index is None else screen_index),  # Use provided screen index or default to 4
+                    str(4 if screen_index is None else screen_index),
                     f='avfoundation',
                     framerate=30,
                     video_size='1280x720',
@@ -201,8 +208,6 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
             )
         )
         
-        print("\nStarting recording now...")
-        
         # Add -y flag to force overwrite without prompting
         screen_cmd.insert(1, '-y')
         
@@ -212,26 +217,41 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         # If not verbose, suppress all ffmpeg output
         if not verbose:
             screen_cmd.extend(['-v', 'quiet', '-nostats'])
-            
-        # Start screen recording in background
+        
+        # Define function to run audio recording in a thread
+        def audio_recording_thread():
+            try:
+                audio_result[0] = record_audio(temp_audio_path, duration, verbose=verbose)
+            except Exception as e:
+                print(f"Error in audio recording thread: {str(e)}")
+                audio_result[0] = None
+        
+        # Create threads for audio and video recording
+        audio_thread = threading.Thread(target=audio_recording_thread)
+        
+        print("\nStarting recording now...")
+        
+        # Start both threads almost simultaneously for minimal delay
+        audio_thread.start()
+        
+        # Start screen recording
         screen_process = subprocess.Popen(
             screen_cmd,
             stdout=subprocess.DEVNULL if not verbose else None,
             stderr=subprocess.DEVNULL if not verbose else None
         )
         
-        # Immediately start audio recording
-        audio_file = record_audio(temp_audio_path, duration, verbose=verbose)
-        
-        # Wait for screen recording to finish if it hasn't already
+        # Wait for both processes to complete
+        audio_thread.join()
         screen_process.wait()
         
-        if not os.path.exists(temp_video_path) or not audio_file:
+        # Check if both recordings succeeded
+        if not os.path.exists(temp_video_path) or not audio_result[0]:
             print("Error: Screen or audio recording failed")
             return None
         
         print("\n3. Combining video and audio...")
-        result = combine_audio_video(temp_video_path, audio_file, output_file, verbose=verbose)
+        result = combine_audio_video(temp_video_path, audio_result[0], output_file, verbose=verbose)
         
         # Clean up temporary files
         try:
