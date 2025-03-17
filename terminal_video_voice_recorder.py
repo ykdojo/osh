@@ -26,8 +26,11 @@ class CursesShortcutHandler:
         self.stdscr = None
         self.status_message = ""
         
-        # Initialize recording session handler
-        self.recording_session = RecordingSession(status_callback=self.set_status_message)
+        # Initialize recording session handler with both status and recording started callbacks
+        self.recording_session = RecordingSession(
+            status_callback=self.set_status_message,
+            recording_started_callback=self.on_recording_started
+        )
         
         # Initialize transcription handler
         self.transcription_handler = TranscriptionHandler(
@@ -50,6 +53,16 @@ class CursesShortcutHandler:
     def set_exit(self):
         """Set exit flag"""
         self.is_running = False
+        
+    def on_recording_started(self, mode):
+        """
+        Callback that triggers when recording has actually started
+        
+        Args:
+            mode (str): 'audio' for audio-only or 'video' for screen and audio
+        """
+        # Now we know recording has actually started, show the recording screen
+        self.show_recording_screen(mode)
     
     def init_curses(self):
         """Initialize curses environment"""
@@ -76,8 +89,12 @@ class CursesShortcutHandler:
                 if self.recording_session.stop():
                     self.show_recording_done_screen()
             else:
-                if self.recording_session.start(mode):
-                    self.show_recording_screen(mode)
+                # Display a "preparing to record" screen first
+                self.show_preparing_screen(mode)
+                
+                # Start the recording - the on_recording_started callback will 
+                # handle displaying the recording screen when recording actually starts
+                self.recording_session.start(mode)
         except Exception as e:
             self.status_message = f"Error in toggle_recording: {e}"
             self.refresh_screen()
@@ -117,6 +134,23 @@ class CursesShortcutHandler:
             content = ["Screen Recording active...", "Capturing screen and audio"]
             footer = "Press ⇧⌥Z (Shift+Alt+Z) to stop recording"
             self.display_screen_template("SCREEN RECORDING IN PROGRESS", content, footer)
+    
+    def show_preparing_screen(self, mode="audio"):
+        """
+        Display a screen showing that recording is being prepared
+        
+        Args:
+            mode (str): 'audio' for audio-only or 'video' for screen and audio
+        """
+        if mode == "audio":
+            content = ["Preparing voice recording...", "Setting up audio device"]
+            footer = "Press ⇧⌥X (Shift+Alt+X) to cancel"
+            self.display_screen_template("PREPARING VOICE RECORDING", content, footer)
+        else:  # video mode
+            content = ["Preparing screen recording...", "Setting up screen capture and audio device"]
+            footer = "Press ⇧⌥Z (Shift+Alt+Z) to cancel"
+            self.display_screen_template("PREPARING SCREEN RECORDING", content, footer)
+    
     
     def show_recording_done_screen(self):
         """Display recording done screen with recording path info"""

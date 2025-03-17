@@ -17,7 +17,8 @@ from recorders.utils import combine_audio_video, list_screen_devices, list_audio
 from recorders.recorder import record_audio, record_screen
 
 
-def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, screen_index=None, manual_stop_event=None):
+def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, 
+                        screen_index=None, manual_stop_event=None, on_recording_started=None):
     """
     Record high-quality screen and audio simultaneously using threading,
     with audio recording stopping when screen recording finishes
@@ -28,6 +29,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         verbose (bool): Whether to show detailed output logs
         screen_index (int, optional): Screen index to capture, if None will use default
         manual_stop_event (threading.Event, optional): Event to trigger manual stopping from outside
+        on_recording_started (callable, optional): Callback function to execute when recording actually starts
     
     Returns:
         str: Path to final combined file or None if failed
@@ -97,6 +99,14 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         # Start audio recording thread
         audio_thread.start()
         
+        # Setup a callback for when the ffmpeg process actually starts
+        def on_screen_record_start():
+            if verbose:
+                print("Screen recording process has actually started")
+            # Call the external callback if provided
+            if on_recording_started:
+                on_recording_started()
+        
         # Start screen recording using the updated function and ensure all output is suppressed
         # when not in verbose mode by passing verbose flag
         screen_result = record_screen(
@@ -106,7 +116,8 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
             resolution='1280x720', 
             screen_index=screen_to_use,
             stop_event=manual_stop_event,
-            verbose=verbose
+            verbose=verbose,
+            on_process_start=on_screen_record_start
         )
         
         screen_complete_time = time.time()

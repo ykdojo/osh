@@ -14,7 +14,8 @@ from recorders.utils import list_audio_devices
 from recorders.recorder import record_audio
 
 
-def record_audio_only(output_file='audio_recording.wav', duration=10, verbose=False, manual_stop_event=None):
+def record_audio_only(output_file='audio_recording.wav', duration=10, verbose=False, 
+                  manual_stop_event=None, on_recording_started=None):
     """
     Record high-quality audio using threading with ability to stop manually
     
@@ -23,6 +24,7 @@ def record_audio_only(output_file='audio_recording.wav', duration=10, verbose=Fa
         duration (int): Maximum recording duration in seconds 
         verbose (bool): Whether to show detailed output logs
         manual_stop_event (threading.Event, optional): Event to trigger manual stopping from outside
+        on_recording_started (callable, optional): Callback function to execute when recording actually starts
     
     Returns:
         str: Path to recorded audio file or None if failed
@@ -72,6 +74,29 @@ def record_audio_only(output_file='audio_recording.wav', duration=10, verbose=Fa
         
         if verbose:
             print("\nStarting recording now...")
+        
+        # Create a flag to track if we've already triggered the callback
+        callback_triggered = [False]
+        
+        # Callback function for when recording actually starts
+        def on_audio_record_start():
+            if not callback_triggered[0]:
+                if verbose:
+                    print("Audio recording has actually started")
+                callback_triggered[0] = True
+                # Call the external callback if provided
+                if on_recording_started:
+                    on_recording_started()
+        
+        # Start a short timer to trigger the callback after the recording has had time to start
+        def delayed_callback():
+            # Wait a short time for recording to initialize
+            time.sleep(0.5)
+            on_audio_record_start()
+            
+        callback_thread = threading.Thread(target=delayed_callback)
+        callback_thread.daemon = True
+        callback_thread.start()
         
         # Start audio recording
         result = record_audio(output_file, verbose=verbose, stop_event=stop_event)
