@@ -56,7 +56,10 @@ def transcribe_video(video_file_path=None, verbose=False):
             video_data = f.read()
         
         # Initialize the model
-        model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
+        # Old model: flash-thinking experimental model
+        # model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
+        # New model: standard flash model
+        model = genai.GenerativeModel("gemini-2.0-flash")
         
         # Create parts for the generation
         video_part = {"mime_type": "video/mp4", "data": video_data}

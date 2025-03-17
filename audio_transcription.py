@@ -71,7 +71,10 @@ def transcribe_audio(audio_file_path=None, verbose=False):
                 print(f"Warning: Unknown audio format '{file_ext}', defaulting to {mime_type}")
         
         # Initialize the model
-        model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
+        # Old model: flash-thinking experimental model
+        # model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
+        # New model: standard flash model
+        model = genai.GenerativeModel("gemini-2.0-flash")
         
         # Create parts for the generation
         audio_part = {"mime_type": mime_type, "data": audio_data}
