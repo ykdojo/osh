@@ -14,8 +14,9 @@ import os
 from type_text import type_text
 # Import keyboard shortcut handler
 from keyboard_handler import KeyboardShortcutHandler
-# Import audio transcription function
+# Import transcription functions
 from audio_transcription import transcribe_audio
+from video_transcription import transcribe_video
 # Import terminal UI functions
 from terminal_ui import init_curses, cleanup_curses, display_screen_template
 # Import recording session handler
@@ -62,15 +63,20 @@ class CursesShortcutHandler:
         """Start the keyboard shortcut listener"""
         self.keyboard_handler.start()
     
-    def toggle_recording(self):
-        """Toggle recording state when shortcut is pressed"""
+    def toggle_recording(self, mode="audio"):
+        """
+        Toggle recording state when shortcut is pressed
+        
+        Args:
+            mode (str): 'audio' for audio-only or 'video' for screen and audio
+        """
         try:
             if self.recording_session.is_recording:
                 if self.recording_session.stop():
                     self.show_recording_done_screen()
             else:
-                if self.recording_session.start():
-                    self.show_recording_screen()
+                if self.recording_session.start(mode):
+                    self.show_recording_screen(mode)
         except Exception as e:
             self.status_message = f"Error in toggle_recording: {e}"
             self.refresh_screen()
@@ -87,14 +93,30 @@ class CursesShortcutHandler:
     
     def show_main_screen(self):
         """Display the main screen with options"""
-        content = ["Status: Ready", "Voice Recorder is ready to capture audio-only recordings."]
-        self.display_screen_template("VOICE RECORDER", content)
+        content = [
+            "Status: Ready", 
+            "",
+            "Recording options:",
+            "• Audio only (⇧⌥X): Record voice without capturing screen",
+            "• Screen + Audio (⇧⌥Z): Record both screen and voice"
+        ]
+        self.display_screen_template("AUDIO/VIDEO RECORDER", content)
     
-    def show_recording_screen(self):
-        """Display recording screen"""
-        content = ["Voice Recording active...", "Capturing audio only"]
-        footer = "Press ⇧⌥X (Shift+Alt+X) to stop recording"
-        self.display_screen_template("VOICE RECORDING IN PROGRESS", content, footer)
+    def show_recording_screen(self, mode="audio"):
+        """
+        Display recording screen
+        
+        Args:
+            mode (str): 'audio' for audio-only or 'video' for screen and audio
+        """
+        if mode == "audio":
+            content = ["Voice Recording active...", "Capturing audio only"]
+            footer = "Press ⇧⌥X (Shift+Alt+X) to stop recording"
+            self.display_screen_template("VOICE RECORDING IN PROGRESS", content, footer)
+        else:  # video mode
+            content = ["Screen Recording active...", "Capturing screen and audio"]
+            footer = "Press ⇧⌥Z (Shift+Alt+Z) to stop recording"
+            self.display_screen_template("SCREEN RECORDING IN PROGRESS", content, footer)
     
     def show_recording_done_screen(self):
         """Display recording done screen with recording path info"""
@@ -110,12 +132,20 @@ class CursesShortcutHandler:
             # Start transcription process in a separate thread
             def transcribe_thread_func():
                 try:
-                    self.status_message = "Transcribing audio with Gemini AI..."
-                    self.refresh_screen()
-                    self.transcription = transcribe_audio(
-                        audio_file_path=self.recording_session.recording_path,
-                        verbose=False
-                    )
+                    if self.recording_session.recording_mode == "audio":
+                        self.status_message = "Transcribing audio with Gemini AI..."
+                        self.refresh_screen()
+                        self.transcription = transcribe_audio(
+                            audio_file_path=self.recording_session.recording_path,
+                            verbose=False
+                        )
+                    else:  # video mode
+                        self.status_message = "Transcribing video with Gemini AI..."
+                        self.refresh_screen()
+                        self.transcription = transcribe_video(
+                            video_file_path=self.recording_session.recording_path,
+                            verbose=False
+                        )
                     self.show_transcription()
                 except Exception as e:
                     self.status_message = f"Transcription error: {str(e)}"
@@ -123,16 +153,19 @@ class CursesShortcutHandler:
                     # Fall back to showing just the recording path if transcription fails
                     self.show_recording_path()
             
-            # Show the processing screen
-            self.display_screen_template("VOICE RECORDING DONE!", content)
+            # Show the processing screen with appropriate title based on recording mode
+            title = "VOICE RECORDING DONE!" if self.recording_session.recording_mode == "audio" else "SCREEN RECORDING DONE!"
+            self.display_screen_template(title, content)
             
             # Start transcription in a separate thread
             transcription_thread = threading.Thread(target=transcribe_thread_func)
             transcription_thread.daemon = True
             transcription_thread.start()
         else:
-            content.append("Error: Voice recording failed or was interrupted")
-            self.display_screen_template("VOICE RECORDING DONE!", content)
+            error_type = "Voice" if self.recording_session.recording_mode == "audio" else "Screen"
+            content.append(f"Error: {error_type} recording failed or was interrupted")
+            title = "VOICE RECORDING DONE!" if self.recording_session.recording_mode == "audio" else "SCREEN RECORDING DONE!"
+            self.display_screen_template(title, content)
             # Show just the recording path after a delay
             threading.Timer(2.0, self.show_recording_path).start()
     
@@ -140,16 +173,22 @@ class CursesShortcutHandler:
         """Display recording path info and copy to clipboard"""
         recording_info = self.recording_session.get_recording_info()
         
+        # Determine correct message based on recording mode
+        recording_type = "voice" if self.recording_session.recording_mode == "audio" else "screen"
+        
         # Display information about the recording
         content = [
-            "Your voice recording has been completed.",
+            f"Your {recording_type} recording has been completed.",
             "",
             "Recording information:",
             recording_info,
             "",
             "Recording path copied to clipboard."
         ]
-        self.display_screen_template("VOICE RECORDING DONE!", content)
+        
+        # Set appropriate title
+        title = "VOICE RECORDING DONE!" if self.recording_session.recording_mode == "audio" else "SCREEN RECORDING DONE!"
+        self.display_screen_template(title, content)
         
         # Type the recording path at the cursor position without countdown or verbose output
         if self.recording_session.recording_path:

@@ -25,7 +25,8 @@ class KeyboardShortcutHandler:
         self.callbacks = callback_functions
         
         # Define the hotkey combinations
-        self.SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('x')}
+        self.AUDIO_SHORTCUT = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('x')}
+        self.VIDEO_SHORTCUT = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('z')}
         self.EXIT_COMBO = {keyboard.Key.ctrl_l, keyboard.KeyCode.from_char('c')}
     
     def _handle_keypress(self, key, current):
@@ -40,26 +41,42 @@ class KeyboardShortcutHandler:
             True to continue listening, False to stop
         """
         try:
-            # Add key to current set if it's part of the shortcut
-            if key in self.SHORTCUT_COMBO or key in self.EXIT_COMBO:
+            # Add key to current set if it's part of any shortcut
+            if key in self.AUDIO_SHORTCUT or key in self.VIDEO_SHORTCUT or key in self.EXIT_COMBO:
                 current.add(key)
             
-            # Check for special character "˛" which is produced by Shift+Alt+X on Mac
+            # Check for special character "˛" which is produced by Shift+Alt+X on Mac (audio shortcut)
             if isinstance(key, keyboard.KeyCode) and hasattr(key, 'char') and key.char == "˛":
-                self.callbacks['status']("Shortcut triggered: Shift+Alt+X (˛)")
+                self.callbacks['status']("Audio shortcut triggered: Shift+Alt+X (˛)")
                 
                 # Delete the "˛" character
                 kb = Controller()
                 kb.press(Key.backspace)
                 kb.release(Key.backspace)
                 
-                self.callbacks['toggle']()
+                self.callbacks['toggle']("audio")
+                return True
+            
+            # Check for special character "¸" which is produced by Shift+Alt+Z on Mac (video shortcut)
+            if isinstance(key, keyboard.KeyCode) and hasattr(key, 'char') and key.char == "¸":
+                self.callbacks['status']("Video shortcut triggered: Shift+Alt+Z (¸)")
+                
+                # Delete the "¸" character
+                kb = Controller()
+                kb.press(Key.backspace)
+                kb.release(Key.backspace)
+                
+                self.callbacks['toggle']("video")
                 return True
             
             # Check for key combinations
-            elif all(k in current for k in self.SHORTCUT_COMBO):
-                self.callbacks['status']("Keyboard shortcut triggered: ⇧⌥X")
-                self.callbacks['toggle']()
+            elif all(k in current for k in self.AUDIO_SHORTCUT):
+                self.callbacks['status']("Audio shortcut triggered: ⇧⌥X")
+                self.callbacks['toggle']("audio")
+                return True
+            elif all(k in current for k in self.VIDEO_SHORTCUT):
+                self.callbacks['status']("Video shortcut triggered: ⇧⌥Z")
+                self.callbacks['toggle']("video")
                 return True
             elif all(k in current for k in self.EXIT_COMBO):
                 self.callbacks['status']("Exiting...")
