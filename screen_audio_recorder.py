@@ -53,14 +53,15 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         manual_stop_event = threading.Event()
     
     try:
-        print("=== Starting High-Quality Recording ===")
-        print(f"Screen recording duration: {duration} seconds")
-        print("Audio will record until screen recording completes")
-        if manual_stop_event:
-            print("Recording can be stopped early using external control")
-        print(f"Final output will be saved to: {output_file}")
+        if verbose:
+            print("=== Starting High-Quality Recording ===")
+            print(f"Screen recording duration: {duration} seconds")
+            print("Audio will record until screen recording completes")
+            if manual_stop_event:
+                print("Recording can be stopped early using external control")
+            print(f"Final output will be saved to: {output_file}")
         
-        # Display which screen will be captured
+        # Get screen devices but don't print output
         screen_devices = list_screen_devices(print_output=False)
         
         # If no screen index provided, use the last available screen index
@@ -75,20 +76,23 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
             screen_to_use = screen_index
             
         screen_name = screen_devices.get(screen_to_use, f"Unknown screen at index {screen_to_use}")
-        print(f"Screen to capture: {screen_name}")
+        if verbose:
+            print(f"Screen to capture: {screen_name}")
         
         # Define function to run audio recording in a thread
         def audio_recording_thread():
             try:
                 audio_result[0] = record_audio(temp_audio_path, verbose=verbose, stop_event=stop_event)
             except Exception as e:
-                print(f"Error in audio recording thread: {str(e)}")
+                if verbose:
+                    print(f"Error in audio recording thread: {str(e)}")
                 audio_result[0] = None
         
         # Create thread for audio recording
         audio_thread = threading.Thread(target=audio_recording_thread)
         
-        print("\nStarting recording now...")
+        if verbose:
+            print("\nStarting recording now...")
         
         # Start audio recording thread
         audio_thread.start()
@@ -114,16 +118,19 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         audio_thread.join()
         audio_complete_time = time.time()
         
-        # Print the time difference
+        # Calculate the time difference
         time_diff = audio_complete_time - screen_complete_time
-        print(f"Time difference between screen and audio completion: {time_diff:.4f} seconds")
+        if verbose:
+            print(f"Time difference between screen and audio completion: {time_diff:.4f} seconds")
         
         # Check if both recordings succeeded
         if not os.path.exists(temp_video_path) or not audio_result[0]:
-            print("Error: Screen or audio recording failed")
+            if verbose:
+                print("Error: Screen or audio recording failed")
             return None
         
-        print("\nCombining video and audio...")
+        if verbose:
+            print("\nCombining video and audio...")
         result = combine_audio_video(temp_video_path, audio_result[0], output_file, verbose=verbose, time_diff=time_diff)
         
         # Clean up temporary files
@@ -133,16 +140,18 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         except:
             pass
             
-        print("\n=== Recording Process Completed ===")
-        if result:
-            file_size = os.path.getsize(output_file) / (1024 * 1024)  # Size in MB
-            print(f"Final file size: {file_size:.2f} MB")
-            print(f"Recording saved to: {output_file}")
+        if verbose:
+            print("\n=== Recording Process Completed ===")
+            if result:
+                file_size = os.path.getsize(output_file) / (1024 * 1024)  # Size in MB
+                print(f"Final file size: {file_size:.2f} MB")
+                print(f"Recording saved to: {output_file}")
         
         return result
         
     except Exception as e:
-        print(f"Error in recording process: {str(e)}")
+        if verbose:
+            print(f"Error in recording process: {str(e)}")
         # Set stop event to end audio recording if an error occurs
         stop_event.set()
         

@@ -166,11 +166,8 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
         if verbose:
             print(f"Starting screen recording for up to {duration} seconds...")
             print(f"Running ffmpeg command: {' '.join(cmd)}")
-        else:
-            print(f"Recording screen for up to {duration} seconds...")
-            
-        if stop_event:
-            print(f"Press the designated key to stop recording early")
+            if stop_event:
+                print(f"Press the designated key to stop recording early")
         
         # Start ffmpeg process with appropriate redirection
         if verbose:
@@ -188,7 +185,8 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
             def monitor_stop_event():
                 stop_event.wait()  # Wait until stop_event is set
                 if process.poll() is None:  # If process is still running
-                    print("Manual stop requested, terminating recording...")
+                    if verbose:
+                        print("Manual stop requested, terminating recording...")
                     # Send SIGTERM to gracefully stop ffmpeg
                     if os.name == 'nt':  # Windows
                         process.terminate()
@@ -217,11 +215,10 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
         
         if verbose:
             print(f"Screen recording completed and saved to {output_file}")
-        else:
-            print("Screen recording completed")
             
         return output_file
         
     except Exception as e:
-        print(f"Error during screen recording: {str(e)}")
+        if verbose:
+            print(f"Error during screen recording: {str(e)}")
         return None
