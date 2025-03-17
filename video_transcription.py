@@ -98,8 +98,8 @@ def transcribe_video(video_file_path=None, verbose=False):
             print(response.text)
             print("\n--- End of Response ---")
         
-        # Return the transcription text
-        return response.text
+        # Return the transcription text with whitespace stripped
+        return response.text.strip()
             
     except Exception as e:
         if verbose:
