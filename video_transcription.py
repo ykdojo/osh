@@ -66,23 +66,25 @@ def transcribe_video(video_file_path=None, verbose=False):
         
         # Transcription prompt
         transcription_prompt = """
-        Transcribe the speech in this video with clean, professional results, carefully using the visual content as context.
+        Create a polished, professional transcription of this video, completely removing all speech disfluencies while carefully using the visual content as context.
         
-        Important instructions:
-        - Provide ONLY the polished transcription with no additional formatting or commentary
-        - Do NOT include phrases like "Here's the transcript:" or "Transcription:"
-        - Do NOT add timestamps
-        - Do NOT include any introductory or concluding text
-        - Begin immediately with the transcribed content
-        - Remove filler words (um, uh, you know, like, etc.)
-        - Clean up repetitions, false starts, and cases where the speaker corrects themselves
+        Critical instructions:
+        - You MUST remove ALL filler words (um, uh, like, you know, sort of, kind of, etc.)
+        - You MUST remove ALL repetitions, stutters, false starts, and self-corrections
+        - You MUST eliminate ALL verbal crutches and speech disfluencies
+        - You MUST convert hesitant, rambling speech into clear, articulate sentences
+        - You MUST NOT include phrases like "Here's the transcript:" or any other headers
+        - You MUST NOT add timestamps or speaker attributions 
+        - You MUST NOT include any introductory or concluding remarks
+        - You MUST begin immediately with the transcribed content
         - For longer speech, use appropriate paragraph breaks for readability
-        - Pay attention to text and names visible on screen (file names, people names, place names)
+        - Pay careful attention to text and names visible on screen (file names, people names, place names)
         - When the speaker refers to on-screen elements, preserve those references accurately
-        - Capture technical terms, code, and commands accurately
-        - Maintain the original meaning while producing clean, coherent text
+        - Capture technical terms, code, and commands with 100% accuracy
+        - Preserve the original meaning while substantially improving speech clarity
         
-        Your response should contain only the clean, polished transcription that can be copied and pasted as-is.
+        Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
+        Make it concise, clear, and professional - as if it had been carefully edited for publication.
         """
         
         if verbose:
