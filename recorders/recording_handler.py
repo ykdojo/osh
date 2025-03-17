@@ -51,7 +51,7 @@ class RecordingSession:
                 try:
                     self.recording_path = record_audio_only(
                         output_file=output_file,
-                        duration=60,  # Set a reasonable default duration
+                        duration=7200,  # Set to 2 hours (7200 seconds)
                         verbose=False,
                         manual_stop_event=self.manual_stop_event
                     )
@@ -67,7 +67,7 @@ class RecordingSession:
                 try:
                     self.recording_path = record_screen_and_audio(
                         output_file=output_file,
-                        duration=60,  # Set a reasonable default duration
+                        duration=7200,  # Set to 2 hours (7200 seconds)
                         verbose=False,
                         manual_stop_event=self.manual_stop_event
                     )
