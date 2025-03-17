@@ -1,28 +1,50 @@
 #!/usr/bin/env python3
 """
 Terminal-based keyboard shortcut handler with simple UI
-Uses plain terminal output instead of curses for better compatibility with print statements
+Uses curses for proper terminal management
 """
 
-import os
-import sys
-import time
+import curses
 import threading
+import time
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
 
-class TerminalShortcutHandler:
-    """Simple terminal UI with keyboard shortcut support"""
+class CursesShortcutHandler:
+    """Terminal UI with keyboard shortcut support using curses"""
     
     def __init__(self):
         self.is_recording = False
         self.keyboard_listener = None
         self.is_running = True
+        self.stdscr = None
+        self.status_message = ""
+    
+    def init_curses(self):
+        """Initialize curses environment"""
+        self.stdscr = curses.initscr()
+        curses.noecho()  # Don't echo keypresses
+        curses.cbreak()  # React to keys instantly
+        self.stdscr.keypad(True)  # Enable keypad mode
         
-    def clear_screen(self):
-        """Clear the terminal screen in a cross-platform way"""
-        os.system('cls' if os.name == 'nt' else 'clear')
-        
+        # Try to enable colors if terminal supports it
+        if curses.has_colors():
+            curses.start_color()
+            curses.use_default_colors()  # Use terminal's default colors for better visibility
+            
+            # Slightly more vibrant but still subtle colors
+            curses.init_pair(1, 209, -1)  # Title - slightly brighter coral/orange
+            curses.init_pair(2, 68, -1)   # Highlight - slightly brighter blue
+            curses.init_pair(3, 147, -1)  # Footer - slightly brighter grayish-lavender
+    
+    def cleanup_curses(self):
+        """Clean up curses on exit"""
+        if self.stdscr:
+            self.stdscr.keypad(False)
+            curses.echo()
+            curses.nocbreak()
+            curses.endwin()
+    
     def start_keyboard_listener(self):
         """Start listening for the keyboard shortcut"""
         # Define the hotkey combinations
@@ -38,7 +60,8 @@ class TerminalShortcutHandler:
                 
                 # Check for special character "¸" which is produced by Shift+Alt+Z on Mac
                 if isinstance(key, keyboard.KeyCode) and hasattr(key, 'char') and key.char == "¸":
-                    print("\nShortcut triggered: Shift+Alt+Z (¸)")
+                    self.status_message = "Shortcut triggered: Shift+Alt+Z (¸)"
+                    self.refresh_screen()
                     
                     # Create a keyboard controller to send backspace
                     kb = Controller()
@@ -52,16 +75,19 @@ class TerminalShortcutHandler:
                 
                 # Check for key combinations
                 elif all(k in current for k in SHORTCUT_COMBO):
-                    print("\nKeyboard shortcut triggered: ⇧⌥Z")
+                    self.status_message = "Keyboard shortcut triggered: ⇧⌥Z"
+                    self.refresh_screen()
                     self.toggle_recording()
                     return True
                 elif all(k in current for k in EXIT_COMBO):
-                    print("\nExiting...")
+                    self.status_message = "Exiting..."
+                    self.refresh_screen()
                     self.is_running = False
                     return False  # Stop listener
                 
             except Exception as e:
-                print(f"Error in keyboard listener: {e}")
+                self.status_message = f"Error in keyboard listener: {e}"
+                self.refresh_screen()
             
             return True  # Continue listening
         
@@ -71,7 +97,8 @@ class TerminalShortcutHandler:
                 if key in current:
                     current.remove(key)
             except Exception as e:
-                print(f"Error in keyboard release: {e}")
+                self.status_message = f"Error in keyboard release: {e}"
+                self.refresh_screen()
             
             return self.is_running  # Continue listening if app is running
                 
@@ -82,9 +109,11 @@ class TerminalShortcutHandler:
                 self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
                 self.keyboard_listener.daemon = True
                 self.keyboard_listener.start()
-                print("Keyboard shortcut listener started")
+                self.status_message = "Keyboard shortcut listener started"
+                self.refresh_screen()
             except Exception as e:
-                print(f"Failed to start keyboard listener: {e}")
+                self.status_message = f"Failed to start keyboard listener: {e}"
+                self.refresh_screen()
     
     def toggle_recording(self):
         """Toggle recording state when shortcut is pressed"""
@@ -94,42 +123,76 @@ class TerminalShortcutHandler:
             else:
                 self.start_recording()
         except Exception as e:
-            print(f"Error in toggle_recording: {e}")
+            self.status_message = f"Error in toggle_recording: {e}"
+            self.refresh_screen()
     
     def start_recording(self):
         """Start recording session (placeholder)"""
         self.is_recording = True
-        self.clear_screen()
         self.show_recording_screen()
+    
+    def refresh_screen(self):
+        """Force screen refresh"""
+        if self.stdscr:
+            self.stdscr.refresh()
     
     def display_screen_template(self, title, content, footer_text=None):
         """Common screen display template to reduce code duplication"""
-        self.clear_screen()
-        print("\n")
-        print("=" * 60)
-        print(f"{title:^60}")
-        print("=" * 60)
-        print("\n")
+        if not self.stdscr:
+            return
+            
+        # Clear screen
+        self.stdscr.clear()
+        
+        # Get terminal dimensions
+        height, width = self.stdscr.getmaxyx()
+        
+        # Display border and title
+        self.stdscr.addstr(0, 0, "=" * (width-1))
+        
+        # Title with color if available
+        if curses.has_colors():
+            self.stdscr.addstr(1, 0, title.center(width-1), curses.color_pair(1))
+        else:
+            self.stdscr.addstr(1, 0, title.center(width-1))
+            
+        self.stdscr.addstr(2, 0, "=" * (width-1))
         
         # Display content
+        line_num = 4
         for line in content:
-            print(f"  {line}")
+            self.stdscr.addstr(line_num, 0, line)
+            line_num += 1
         
-        print("\n")
+        # Display footer
+        footer_line = height - 3
         
-        # Display footer if provided, otherwise use default
-        if footer_text:
-            print(f"  {footer_text}")
+        # Footer with color if available
+        if curses.has_colors():
+            color = curses.color_pair(3)
         else:
-            print("  Press ⇧⌥Z (Shift+Alt+Z) to start/stop recording")
-            print("  Press Ctrl+C to exit")
+            color = curses.A_NORMAL
+            
+        if footer_text:
+            self.stdscr.addstr(footer_line, 0, footer_text, color)
+        else:
+            self.stdscr.addstr(footer_line, 0, "Press ⇧⌥Z (Shift+Alt+Z) to start/stop recording", color)
+            self.stdscr.addstr(footer_line + 1, 0, "Press Ctrl+C to exit", color)
         
-        print("\n")
-        print("=" * 60)
+        # Bottom border
+        self.stdscr.addstr(height-1, 0, "=" * (width-1))
+        
+        # Display status message if any
+        if self.status_message:
+            msg_y = height - 5
+            self.stdscr.addstr(msg_y, 0, self.status_message, curses.A_DIM)
+        
+        # Update the screen
+        self.stdscr.refresh()
     
     def stop_recording(self):
         """Stop recording session (placeholder)"""
-        print("Stopping recording...")
+        self.status_message = "Stopping recording..."
         self.is_recording = False
         self.show_recording_done_screen()
         return True
@@ -153,6 +216,9 @@ class TerminalShortcutHandler:
     def run(self):
         """Main application loop"""
         try:
+            # Initialize curses
+            self.init_curses()
+            
             # Start keyboard listener
             self.start_keyboard_listener()
             
@@ -164,15 +230,17 @@ class TerminalShortcutHandler:
                 time.sleep(0.1)  # Small sleep to prevent CPU usage
         
         except KeyboardInterrupt:
-            print("\nExiting...")
+            self.status_message = "Exiting..."
+            self.refresh_screen()
         
         finally:
             # Clean up
             if self.keyboard_listener:
                 self.keyboard_listener.stop()
-            
-            print("Application closed.")
+                
+            # Clean up curses
+            self.cleanup_curses()
 
 if __name__ == "__main__":
-    app = TerminalShortcutHandler()
+    app = CursesShortcutHandler()
     app.run()
