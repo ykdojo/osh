@@ -11,6 +11,6 @@ if command -v brew &> /dev/null && ! brew list portaudio &> /dev/null; then
     echo "portaudio not found, but may be needed for PyAudio. Install with 'brew install portaudio' if you encounter issues."
 fi
 
-# Run the menu system
-echo "Starting menu system..."
-python menu_system.py
+# Run the terminal video voice recorder
+echo "Starting terminal video voice recorder..."
+python terminal_video_voice_recorder.py
