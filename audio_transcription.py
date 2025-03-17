@@ -94,6 +94,7 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         - You MUST begin immediately with the transcribed content
         - For longer speech, use appropriate paragraph breaks for readability
         - Preserve all technical terms, names, and specialized vocabulary accurately
+        - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
         - Preserve the original meaning while substantially improving speech clarity
         
         Your goal is to produce a transcript that reads as if it were written text rather than spoken words.

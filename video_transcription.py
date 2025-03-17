@@ -82,6 +82,8 @@ def transcribe_video(video_file_path=None, verbose=False):
         - When the speaker refers to on-screen elements, preserve those references accurately
         - Capture technical terms, code, and commands with 100% accuracy
         - Preserve the original meaning while substantially improving speech clarity
+        - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
+        - Follow the specific capitalization patterns shown on-screen for names, brands, and technical terms
         
         Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
         Make it concise, clear, and professional - as if it had been carefully edited for publication.
