@@ -66,11 +66,18 @@ def transcribe_video(video_file_path=None, verbose=False):
         
         # Transcription prompt
         transcription_prompt = """
-        Transcribe the speech in this video word for word, using the video content as context.
+        Transcribe the speech in this video word for word, carefully using the visual content as context.
         
-        If the user gives a clear instruction in the video (rather than just speaking normally),
-        follow that instruction. Use your judgment to determine what is an instruction versus
-        content to transcribe.
+        Focus on accuracy and completeness. Pay special attention to:
+        - Any text, file names, or UI elements visible on the screen
+        - Names of people, places, companies, or products shown visually
+        - Code, commands, or technical content being demonstrated
+        - Match your transcription to what's being discussed in the context of what's shown
+        
+        When the speaker refers to something visible on screen (like "this file," "that function," 
+        or "click here"), include the specific name/identifier of what they're referencing.
+        
+        Always prioritize accurate transcription while incorporating relevant visual context.
         """
         
         if verbose:

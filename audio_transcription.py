@@ -83,9 +83,13 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         transcription_prompt = """
         Transcribe the speech in this audio recording word for word.
         
-        If the user gives a clear instruction in the audio (rather than just speaking normally),
-        follow that instruction. Use your judgment to determine what is an instruction versus
-        content to transcribe.
+        Focus on accuracy and completeness. Pay special attention to:
+        - Technical terms and specialized vocabulary
+        - Names of people, places, or organizations
+        - Numbers, dates, and measurements
+        - Capture the speech exactly as spoken, including filler words
+        
+        Always prioritize accurate transcription over interpretation.
         """
         
         if verbose:
