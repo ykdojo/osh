@@ -9,26 +9,41 @@ import threading
 import time
 import pyperclip
 import os
-from pynput import keyboard
-from pynput.keyboard import Controller, Key
 
 # Import the type_text function for typing transcription at cursor
 from type_text import type_text
 # Import the screen and audio recording function
 from screen_audio_recorder import record_screen_and_audio
+# Import keyboard shortcut handler
+from keyboard_handler import KeyboardShortcutHandler
 
 class CursesShortcutHandler:
     """Terminal UI with keyboard shortcut support using curses"""
     
     def __init__(self):
         self.is_recording = False
-        self.keyboard_listener = None
         self.is_running = True
         self.stdscr = None
         self.status_message = ""
         self.manual_stop_event = None
         self.recording_path = None
         self.recording_thread = None
+        
+        # Initialize keyboard handler with callbacks
+        self.keyboard_handler = KeyboardShortcutHandler({
+            'toggle': self.toggle_recording,
+            'exit': self.set_exit,
+            'status': self.set_status_message
+        })
+    
+    def set_status_message(self, message):
+        """Set status message and refresh screen"""
+        self.status_message = message
+        self.refresh_screen()
+        
+    def set_exit(self):
+        """Set exit flag"""
+        self.is_running = False
     
     def init_curses(self):
         """Initialize curses environment"""
@@ -56,74 +71,8 @@ class CursesShortcutHandler:
             curses.endwin()
     
     def start_keyboard_listener(self):
-        """Start listening for the keyboard shortcut"""
-        # Define the hotkey combinations
-        SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('z')}
-        EXIT_COMBO = {keyboard.Key.ctrl_l, keyboard.KeyCode.from_char('c')}
-        current = set()
-        
-        def on_press(key):
-            try:
-                # Add key to current set if it's part of the shortcut
-                if key in SHORTCUT_COMBO or key in EXIT_COMBO:
-                    current.add(key)
-                
-                # Check for special character "¸" which is produced by Shift+Alt+Z on Mac
-                if isinstance(key, keyboard.KeyCode) and hasattr(key, 'char') and key.char == "¸":
-                    self.status_message = "Shortcut triggered: Shift+Alt+Z (¸)"
-                    self.refresh_screen()
-                    
-                    # Create a keyboard controller to send backspace
-                    kb = Controller()
-                    
-                    # Send backspace to delete the "¸" character
-                    kb.press(Key.backspace)
-                    kb.release(Key.backspace)
-                    
-                    self.toggle_recording()
-                    return True
-                
-                # Check for key combinations
-                elif all(k in current for k in SHORTCUT_COMBO):
-                    self.status_message = "Keyboard shortcut triggered: ⇧⌥Z"
-                    self.refresh_screen()
-                    self.toggle_recording()
-                    return True
-                elif all(k in current for k in EXIT_COMBO):
-                    self.status_message = "Exiting..."
-                    self.refresh_screen()
-                    self.is_running = False
-                    return False  # Stop listener
-                
-            except Exception as e:
-                self.status_message = f"Error in keyboard listener: {e}"
-                self.refresh_screen()
-            
-            return True  # Continue listening
-        
-        def on_release(key):
-            try:
-                # Remove key from current pressed keys
-                if key in current:
-                    current.remove(key)
-            except Exception as e:
-                self.status_message = f"Error in keyboard release: {e}"
-                self.refresh_screen()
-            
-            return self.is_running  # Continue listening if app is running
-                
-        # Only start if not already running
-        if self.keyboard_listener is None or not self.keyboard_listener.is_alive():
-            try:
-                # Start the listener
-                self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-                self.keyboard_listener.daemon = True
-                self.keyboard_listener.start()
-                self.status_message = "Keyboard shortcut listener started"
-                self.refresh_screen()
-            except Exception as e:
-                self.status_message = f"Failed to start keyboard listener: {e}"
-                self.refresh_screen()
+        """Start the keyboard shortcut listener"""
+        self.keyboard_handler.start()
     
     def toggle_recording(self):
         """Toggle recording state when shortcut is pressed"""
@@ -322,8 +271,7 @@ class CursesShortcutHandler:
         
         finally:
             # Clean up
-            if self.keyboard_listener:
-                self.keyboard_listener.stop()
+            self.keyboard_handler.stop()
                 
             # Clean up curses
             self.cleanup_curses()
