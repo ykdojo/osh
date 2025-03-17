@@ -25,7 +25,7 @@ class KeyboardShortcutHandler:
         self.callbacks = callback_functions
         
         # Define the hotkey combinations
-        self.SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('z')}
+        self.SHORTCUT_COMBO = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('x')}
         self.EXIT_COMBO = {keyboard.Key.ctrl_l, keyboard.KeyCode.from_char('c')}
     
     def _handle_keypress(self, key, current):
@@ -44,11 +44,11 @@ class KeyboardShortcutHandler:
             if key in self.SHORTCUT_COMBO or key in self.EXIT_COMBO:
                 current.add(key)
             
-            # Check for special character "¸" which is produced by Shift+Alt+Z on Mac
-            if isinstance(key, keyboard.KeyCode) and hasattr(key, 'char') and key.char == "¸":
-                self.callbacks['status']("Shortcut triggered: Shift+Alt+Z (¸)")
+            # Check for special character "˛" which is produced by Shift+Alt+X on Mac
+            if isinstance(key, keyboard.KeyCode) and hasattr(key, 'char') and key.char == "˛":
+                self.callbacks['status']("Shortcut triggered: Shift+Alt+X (˛)")
                 
-                # Delete the "¸" character
+                # Delete the "˛" character
                 kb = Controller()
                 kb.press(Key.backspace)
                 kb.release(Key.backspace)
@@ -58,7 +58,7 @@ class KeyboardShortcutHandler:
             
             # Check for key combinations
             elif all(k in current for k in self.SHORTCUT_COMBO):
-                self.callbacks['status']("Keyboard shortcut triggered: ⇧⌥Z")
+                self.callbacks['status']("Keyboard shortcut triggered: ⇧⌥X")
                 self.callbacks['toggle']()
                 return True
             elif all(k in current for k in self.EXIT_COMBO):

@@ -72,7 +72,7 @@ def display_screen_template(stdscr, title, content, status_message="", footer_te
     if footer_text:
         stdscr.addstr(footer_line, 0, footer_text, color)
     else:
-        stdscr.addstr(footer_line, 0, "Press ⇧⌥Z (Shift+Alt+Z) to start/stop recording", color)
+        stdscr.addstr(footer_line, 0, "Press ⇧⌥X (Shift+Alt+X) to start/stop recording", color)
         stdscr.addstr(footer_line + 1, 0, "Press Ctrl+C to exit", color)
     
     # Bottom border

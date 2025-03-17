@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Recording handler module to manage screen and audio recording sessions
+Recording handler module to manage audio recording sessions
 """
 
 import os
 import time
 import threading
-from screen_audio_recorder import record_screen_and_audio
+from audio_recorder import record_audio_only
 
 class RecordingSession:
-    """Manages a recording session with screen and audio"""
+    """Manages a recording session with audio only"""
     
     def __init__(self, status_callback=None):
         self.is_recording = False
@@ -24,7 +24,7 @@ class RecordingSession:
             self.status_callback(message)
     
     def start(self):
-        """Start recording session with screen and audio"""
+        """Start recording session with audio only"""
         if self.is_recording:
             return False
             
@@ -32,12 +32,12 @@ class RecordingSession:
         self.manual_stop_event = threading.Event()
         
         # Set the output path
-        output_file = f"recording_{int(time.time())}.mp4"
+        output_file = f"recording_{int(time.time())}.wav"
         
         # Create and start the recording thread
         def recording_thread_func():
             try:
-                self.recording_path = record_screen_and_audio(
+                self.recording_path = record_audio_only(
                     output_file=output_file,
                     duration=60,  # Set a reasonable default duration
                     verbose=False,

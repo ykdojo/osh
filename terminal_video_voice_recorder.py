@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Terminal-based keyboard shortcut handler with simple UI
+Terminal-based voice recording handler with simple UI
 Uses curses for proper terminal management
 """
 
@@ -14,8 +14,8 @@ import os
 from type_text import type_text
 # Import keyboard shortcut handler
 from keyboard_handler import KeyboardShortcutHandler
-# Import video transcription function
-from video_transcription import transcribe_video
+# Import audio transcription function
+from audio_transcription import transcribe_audio
 # Import terminal UI functions
 from terminal_ui import init_curses, cleanup_curses, display_screen_template
 # Import recording session handler
@@ -87,14 +87,14 @@ class CursesShortcutHandler:
     
     def show_main_screen(self):
         """Display the main screen with options"""
-        content = ["Status: Ready"]
-        self.display_screen_template("VIDEO VOICE RECORDER", content)
+        content = ["Status: Ready", "Voice Recorder is ready to capture audio-only recordings."]
+        self.display_screen_template("VOICE RECORDER", content)
     
     def show_recording_screen(self):
         """Display recording screen"""
-        content = ["Recording active..."]
-        footer = "Press ⇧⌥Z (Shift+Alt+Z) to stop recording"
-        self.display_screen_template("RECORDING IN PROGRESS", content, footer)
+        content = ["Voice Recording active...", "Capturing audio only"]
+        footer = "Press ⇧⌥X (Shift+Alt+X) to stop recording"
+        self.display_screen_template("VOICE RECORDING IN PROGRESS", content, footer)
     
     def show_recording_done_screen(self):
         """Display recording done screen with recording path info"""
@@ -110,10 +110,10 @@ class CursesShortcutHandler:
             # Start transcription process in a separate thread
             def transcribe_thread_func():
                 try:
-                    self.status_message = "Transcribing video with Gemini AI..."
+                    self.status_message = "Transcribing audio with Gemini AI..."
                     self.refresh_screen()
-                    self.transcription = transcribe_video(
-                        video_file_path=self.recording_session.recording_path,
+                    self.transcription = transcribe_audio(
+                        audio_file_path=self.recording_session.recording_path,
                         verbose=False
                     )
                     self.show_transcription()
@@ -124,15 +124,15 @@ class CursesShortcutHandler:
                     self.show_recording_path()
             
             # Show the processing screen
-            self.display_screen_template("RECORDING DONE!", content)
+            self.display_screen_template("VOICE RECORDING DONE!", content)
             
             # Start transcription in a separate thread
             transcription_thread = threading.Thread(target=transcribe_thread_func)
             transcription_thread.daemon = True
             transcription_thread.start()
         else:
-            content.append("Error: Recording failed or was interrupted")
-            self.display_screen_template("RECORDING DONE!", content)
+            content.append("Error: Voice recording failed or was interrupted")
+            self.display_screen_template("VOICE RECORDING DONE!", content)
             # Show just the recording path after a delay
             threading.Timer(2.0, self.show_recording_path).start()
     
@@ -142,14 +142,14 @@ class CursesShortcutHandler:
         
         # Display information about the recording
         content = [
-            "Your recording has been completed.",
+            "Your voice recording has been completed.",
             "",
             "Recording information:",
             recording_info,
             "",
             "Recording path copied to clipboard."
         ]
-        self.display_screen_template("RECORDING DONE!", content)
+        self.display_screen_template("VOICE RECORDING DONE!", content)
         
         # Type the recording path at the cursor position without countdown or verbose output
         if self.recording_session.recording_path:
