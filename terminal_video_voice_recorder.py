@@ -16,6 +16,8 @@ from type_text import type_text
 from screen_audio_recorder import record_screen_and_audio
 # Import keyboard shortcut handler
 from keyboard_handler import KeyboardShortcutHandler
+# Import video transcription function
+from video_transcription import transcribe_video
 
 class CursesShortcutHandler:
     """Terminal UI with keyboard shortcut support using curses"""
@@ -28,6 +30,7 @@ class CursesShortcutHandler:
         self.manual_stop_event = None
         self.recording_path = None
         self.recording_thread = None
+        self.transcription = None
         
         # Initialize keyboard handler with callbacks
         self.keyboard_handler = KeyboardShortcutHandler({
@@ -212,13 +215,35 @@ class CursesShortcutHandler:
         
         if self.recording_path:
             content.append(f"Recording saved to: {self.recording_path}")
+            
+            # Start transcription process in a separate thread
+            def transcribe_thread_func():
+                try:
+                    self.status_message = "Transcribing video with Gemini AI..."
+                    self.refresh_screen()
+                    self.transcription = transcribe_video(
+                        video_file_path=self.recording_path,
+                        verbose=False
+                    )
+                    self.show_transcription()
+                except Exception as e:
+                    self.status_message = f"Transcription error: {str(e)}"
+                    self.refresh_screen()
+                    # Fall back to showing just the recording path if transcription fails
+                    self.show_recording_path()
+            
+            # Show the processing screen
+            self.display_screen_template("RECORDING DONE!", content)
+            
+            # Start transcription in a separate thread
+            transcription_thread = threading.Thread(target=transcribe_thread_func)
+            transcription_thread.daemon = True
+            transcription_thread.start()
         else:
             content.append("Error: Recording failed or was interrupted")
-            
-        self.display_screen_template("RECORDING DONE!", content)
-        
-        # Show the transcription (or in this case, just the recording path) after a delay
-        threading.Timer(2.0, self.show_recording_path).start()
+            self.display_screen_template("RECORDING DONE!", content)
+            # Show just the recording path after a delay
+            threading.Timer(2.0, self.show_recording_path).start()
     
     def show_recording_path(self):
         """Display recording path info and copy to clipboard"""
@@ -248,6 +273,50 @@ class CursesShortcutHandler:
         # Type the recording path at the cursor position without countdown or verbose output
         if self.recording_path:
             type_text(self.recording_path, countdown=False, verbose=False)
+            
+    def show_transcription(self):
+        """Display transcription and type it at cursor position"""
+        # Update status message
+        self.status_message = "Transcription complete!"
+        
+        # If transcription failed or is empty, fall back to showing the recording path
+        if not self.transcription:
+            self.show_recording_path()
+            return
+        
+        # Prepare transcription display content
+        # Truncate the transcription to around 5 lines for display
+        transcription_display = self.transcription[:500]
+        if len(self.transcription) > 500:
+            transcription_display += "..."
+            
+        # Split into lines for display
+        display_lines = []
+        for i in range(0, len(transcription_display), 60):
+            display_lines.append(transcription_display[i:i+60])
+            
+        # Copy full transcription to clipboard
+        pyperclip.copy(self.transcription)
+        
+        # Display information about the transcription
+        content = [
+            "Your recording has been transcribed!",
+            "",
+            "Transcription preview:"
+        ]
+        
+        # Add truncated transcription lines
+        content.extend(display_lines)
+        
+        # Add info about clipboard
+        content.append("")
+        content.append("Full transcription copied to clipboard.")
+        
+        # Display the screen
+        self.display_screen_template("TRANSCRIPTION COMPLETE!", content)
+        
+        # Type the transcription at the cursor position without countdown or verbose output
+        type_text(self.transcription, countdown=False, verbose=False)
     
     def run(self):
         """Main application loop"""
