@@ -81,18 +81,21 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         
         # Transcription prompt
         transcription_prompt = """
-        Transcribe the speech in this audio recording word for word.
+        Transcribe the speech in this audio recording with clean, professional results.
         
         Important instructions:
-        - Provide ONLY the transcription text with no additional formatting or commentary
+        - Provide ONLY the polished transcription with no additional formatting or commentary
         - Do NOT include phrases like "Here's the transcript:" or "Transcription:"
         - Do NOT add timestamps
         - Do NOT include any introductory or concluding text
         - Begin immediately with the transcribed content
-        - Focus on accuracy of technical terms, names, and specialized vocabulary
-        - Capture the speech exactly as spoken
+        - Remove filler words (um, uh, you know, like, etc.)
+        - Clean up repetitions, false starts, and cases where the speaker corrects themselves
+        - For longer speech, use appropriate paragraph breaks for readability
+        - Maintain the original meaning while producing clean, coherent text
+        - Still focus on accuracy of technical terms, names, and specialized vocabulary
         
-        Your response should contain only the pure transcription that can be copied and pasted as-is.
+        Your response should contain only the clean, polished transcription that can be copied and pasted as-is.
         """
         
         if verbose:
