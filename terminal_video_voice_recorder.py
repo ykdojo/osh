@@ -146,6 +146,15 @@ class CursesShortcutHandler:
                             video_file_path=self.recording_session.recording_path,
                             verbose=False
                         )
+                    
+                    # Remove the recording file after successful transcription
+                    if self.transcription and os.path.exists(self.recording_session.recording_path):
+                        try:
+                            os.remove(self.recording_session.recording_path)
+                            self.status_message = f"Transcription complete! Recording file deleted."
+                        except Exception as e:
+                            self.status_message = f"Transcription complete! Failed to remove recording: {e}"
+                        
                     self.show_transcription()
                 except Exception as e:
                     self.status_message = f"Transcription error: {str(e)}"
@@ -171,6 +180,21 @@ class CursesShortcutHandler:
     
     def show_recording_path(self):
         """Display recording path info and copy to clipboard"""
+        # Check if the recording file still exists (if transcription failed)
+        if self.recording_session.recording_path and not os.path.exists(self.recording_session.recording_path):
+            # If we're here without transcription but the file is gone, it means
+            # transcription failed after the file was deleted, or something unexpected happened
+            content = [
+                "Your recording has been completed, but the file is no longer available.",
+                "",
+                "The recording file may have been deleted or moved."
+            ]
+            
+            # Set appropriate title
+            title = "RECORDING UNAVAILABLE"
+            self.display_screen_template(title, content)
+            return
+            
         recording_info = self.recording_session.get_recording_info()
         
         # Determine correct message based on recording mode
@@ -186,20 +210,22 @@ class CursesShortcutHandler:
             "Recording path copied to clipboard."
         ]
         
+        # Add note about transcription if it failed
+        if self.transcription is None:
+            content.append("")
+            content.append("Note: Transcription was not completed. The recording file is preserved.")
+        
         # Set appropriate title
         title = "VOICE RECORDING DONE!" if self.recording_session.recording_mode == "audio" else "SCREEN RECORDING DONE!"
         self.display_screen_template(title, content)
         
         # Type the recording path at the cursor position without countdown or verbose output
-        if self.recording_session.recording_path:
+        if self.recording_session.recording_path and os.path.exists(self.recording_session.recording_path):
             pyperclip.copy(self.recording_session.recording_path)
             type_text(self.recording_session.recording_path, countdown=False, verbose=False)
             
     def show_transcription(self):
         """Display transcription and type it at cursor position"""
-        # Update status message
-        self.status_message = "Transcription complete!"
-        
         # If transcription failed or is empty, fall back to showing the recording path
         if not self.transcription:
             self.show_recording_path()
@@ -232,6 +258,10 @@ class CursesShortcutHandler:
         # Add info about clipboard
         content.append("")
         content.append("Full transcription copied to clipboard.")
+        
+        # Add note about deleted recording file
+        if not os.path.exists(self.recording_session.recording_path):
+            content.append("Recording file has been deleted after successful transcription.")
         
         # Display the screen
         self.display_screen_template("TRANSCRIPTION COMPLETE!", content)
