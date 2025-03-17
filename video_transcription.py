@@ -74,8 +74,7 @@ def transcribe_video(video_file_path=None, verbose=False):
         - Do NOT add timestamps
         - Do NOT include any introductory or concluding text
         - Begin immediately with the transcribed content
-        - Pay attention to text, file names, and UI elements visible on screen
-        - When the speaker refers to something visible (e.g., "this file"), include the specific name they're pointing to
+        - Pay attention to text and names visible on screen (file names, people names, place names)
         - Capture technical terms, code, and commands accurately
         
         Your response should contain only the pure transcription that can be copied and pasted as-is.
