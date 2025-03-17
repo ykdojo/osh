@@ -83,13 +83,16 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         transcription_prompt = """
         Transcribe the speech in this audio recording word for word.
         
-        Focus on accuracy and completeness. Pay special attention to:
-        - Technical terms and specialized vocabulary
-        - Names of people, places, or organizations
-        - Numbers, dates, and measurements
-        - Capture the speech exactly as spoken, including filler words
+        Important instructions:
+        - Provide ONLY the transcription text with no additional formatting or commentary
+        - Do NOT include phrases like "Here's the transcript:" or "Transcription:"
+        - Do NOT add timestamps
+        - Do NOT include any introductory or concluding text
+        - Begin immediately with the transcribed content
+        - Focus on accuracy of technical terms, names, and specialized vocabulary
+        - Capture the speech exactly as spoken
         
-        Always prioritize accurate transcription over interpretation.
+        Your response should contain only the pure transcription that can be copied and pasted as-is.
         """
         
         if verbose:
