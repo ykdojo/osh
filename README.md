@@ -4,7 +4,9 @@ A Textual-based Python application with Gemini AI integration.
 
 ## Features
 
-- Voice recording functionality
+- Voice and screen recording functionality
+- Automatic transcription with Gemini AI
+- Auto-deletion of recordings after successful transcription
 - Global keyboard shortcuts (using pynput)
 - Text typing automation scripts
 

@@ -33,11 +33,7 @@
 - Keep all menus simple and minimal - avoid adding unnecessary options
 - Other files are supporting files or legacy code
 - Remember to make incremental changes rather than large rewrites
-
-## Current Development Plans
-- Next step: Modify audio/video recording to allow stopping at any time rather than using fixed time limits
-- Step after: Implement transcription of recorded voice with Gemini AI
-- Focus on flexible, user-controlled recording before expanding transcription features
+- Recording files are automatically deleted after successful transcription
 
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones
