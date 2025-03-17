@@ -43,31 +43,49 @@ def test_permission():
         traceback.print_exc()
         return False
 
-def type_text(text, delay=0.1):
-    """Type the given text at the current cursor position with a delay between characters."""
+def type_text(text):
+    """Type the given text at the current cursor position all at once after a wait."""
     try:
         keyboard = Controller()
         
         # Give user time to position cursor where they want the text
-        print("\nPositioning cursor in 5 seconds...")
-        for i in range(5, 0, -1):
+        print("\nPositioning cursor in 3 seconds...")
+        for i in range(3, 0, -1):
             print(f"{i}...")
             time.sleep(1)
         
         print("Now typing...")
         
-        # First try typing a simple space to "wake up" the system
-        keyboard.press(Key.space)
-        keyboard.release(Key.space)
-        time.sleep(0.5)
+        # Print what we're going to type for debugging
+        print(f"About to type: '{text}'")
         
-        # Type the text character by character with longer delay for macOS
-        for char in text:
-            print(f"Typing: {char}")
-            keyboard.press(char)
-            time.sleep(0.05)  # Add slight delay between press and release
-            keyboard.release(char)
-            time.sleep(delay)  # Add delay between keypresses
+        # Type the entire text by writing it to the clipboard and pasting it
+        # This approach avoids potential issues with the keyboard.type() method
+        try:
+            import pyperclip
+            # Save original clipboard content
+            original_clipboard = pyperclip.paste()
+            
+            # Copy our text to clipboard
+            pyperclip.copy(text)
+            
+            # Paste using keyboard shortcut
+            with keyboard.pressed(Key.ctrl if not is_macos else Key.cmd):
+                keyboard.press('v')
+                keyboard.release('v')
+                
+            # Wait a moment before restoring clipboard
+            time.sleep(0.5)
+            
+            # Restore original clipboard content
+            pyperclip.copy(original_clipboard)
+            
+        except ImportError:
+            print("pyperclip module not found. Falling back to manual typing.")
+            # Manual typing as fallback - no delays between characters
+            for char in text:
+                keyboard.press(char)
+                keyboard.release(char)
         
         # Print debug info about registered keystrokes
         if key_events:
