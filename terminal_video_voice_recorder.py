@@ -91,7 +91,6 @@ class TerminalShortcutHandler:
         try:
             if self.is_recording:
                 self.stop_recording()
-                self.show_main_screen()
             else:
                 self.start_recording()
         except Exception as e:
@@ -103,40 +102,53 @@ class TerminalShortcutHandler:
         self.clear_screen()
         self.show_recording_screen()
     
+    def display_screen_template(self, title, content, footer_text=None):
+        """Common screen display template to reduce code duplication"""
+        self.clear_screen()
+        print("\n")
+        print("=" * 60)
+        print(f"{title:^60}")
+        print("=" * 60)
+        print("\n")
+        
+        # Display content
+        for line in content:
+            print(f"  {line}")
+        
+        print("\n")
+        
+        # Display footer if provided, otherwise use default
+        if footer_text:
+            print(f"  {footer_text}")
+        else:
+            print("  Press ⇧⌥Z (Shift+Alt+Z) to start/stop recording")
+            print("  Press Ctrl+C to exit")
+        
+        print("\n")
+        print("=" * 60)
+    
     def stop_recording(self):
         """Stop recording session (placeholder)"""
         print("Stopping recording...")
         self.is_recording = False
+        self.show_recording_done_screen()
         return True
     
     def show_main_screen(self):
         """Display the main screen with options"""
-        self.clear_screen()
-        print("\n")
-        print("=" * 60)
-        print("             TERMINAL SHORTCUT HANDLER")
-        print("=" * 60)
-        print("\n")
-        print("  Press ⇧⌥Z (Shift+Alt+Z) to start/stop recording")
-        print("  Press Ctrl+C to exit")
-        print("\n")
-        print("  Status: Ready")
-        print("\n")
-        print("=" * 60)
+        content = ["Status: Ready"]
+        self.display_screen_template("VIDEO VOICE RECORDER", content)
     
     def show_recording_screen(self):
         """Display recording screen"""
-        self.clear_screen()
-        print("\n")
-        print("=" * 60)
-        print("                  RECORDING IN PROGRESS")
-        print("=" * 60)
-        print("\n")
-        print("  Recording active...")
-        print("\n")
-        print("  Press ⇧⌥Z (Shift+Alt+Z) to stop recording")
-        print("\n")
-        print("=" * 60)
+        content = ["Recording active..."]
+        footer = "Press ⇧⌥Z (Shift+Alt+Z) to stop recording"
+        self.display_screen_template("RECORDING IN PROGRESS", content, footer)
+    
+    def show_recording_done_screen(self):
+        """Display recording done screen"""
+        content = ["Your recording has been completed."]
+        self.display_screen_template("RECORDING DONE!", content)
     
     def run(self):
         """Main application loop"""
