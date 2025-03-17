@@ -43,21 +43,30 @@ def test_permission():
         traceback.print_exc()
         return False
 
-def type_text(text):
-    """Type the given text at the current cursor position all at once after a wait."""
+def type_text(text, countdown=False, verbose=False):
+    """
+    Type the given text at the current cursor position all at once.
+    
+    Args:
+        text (str): The text to type
+        countdown (bool): Whether to show a countdown before typing (default: False)
+        verbose (bool): Whether to print debug information (default: False)
+    """
     try:
         keyboard = Controller()
         
-        # Give user time to position cursor where they want the text
-        print("\nPositioning cursor in 3 seconds...")
-        for i in range(3, 0, -1):
-            print(f"{i}...")
-            time.sleep(1)
+        # Give user time to position cursor if countdown is enabled
+        if countdown:
+            if verbose:
+                print("\nPositioning cursor in 3 seconds...")
+            for i in range(3, 0, -1):
+                if verbose:
+                    print(f"{i}...")
+                time.sleep(1)
         
-        print("Now typing...")
-        
-        # Print what we're going to type for debugging
-        print(f"About to type: '{text}'")
+        if verbose:
+            print("Now typing...")
+            print(f"About to type: '{text}'")
         
         # Type the entire text by writing it to the clipboard and pasting it
         # This approach avoids potential issues with the keyboard.type() method
@@ -81,22 +90,24 @@ def type_text(text):
             pyperclip.copy(original_clipboard)
             
         except ImportError:
-            print("pyperclip module not found. Falling back to manual typing.")
+            if verbose:
+                print("pyperclip module not found. Falling back to manual typing.")
             # Manual typing as fallback - no delays between characters
             for char in text:
                 keyboard.press(char)
                 keyboard.release(char)
         
-        # Print debug info about registered keystrokes
-        if key_events:
+        # Print debug info about registered keystrokes if verbose
+        if verbose and key_events:
             print("\nDebug - Recorded key events:")
             for event in key_events[-10:]:  # Show last 10 events
                 print(f"  {event}")
         
         return True
     except Exception as e:
-        print(f"Error while typing: {e}")
-        traceback.print_exc()
+        if verbose:
+            print(f"Error while typing: {e}")
+            traceback.print_exc()
         return False
 
 if __name__ == "__main__":
@@ -122,7 +133,7 @@ if __name__ == "__main__":
     
     # Execute typing
     print("\nPreparing to type text. Please click where you want to type...")
-    success = type_text(text_to_type)
+    success = type_text(text_to_type, countdown=True, verbose=True)
     
     if success:
         print("\nText typing completed successfully.")

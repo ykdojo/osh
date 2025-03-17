@@ -243,8 +243,8 @@ class CursesShortcutHandler:
         ]
         self.display_screen_template("RECORDING DONE!", content)
         
-        # Type the transcription at the cursor position
-        type_text(transcript)
+        # Type the transcription at the cursor position without countdown or verbose output
+        type_text(transcript, countdown=False, verbose=False)
     
     def run(self):
         """Main application loop"""
