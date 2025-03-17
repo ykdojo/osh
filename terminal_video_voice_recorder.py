@@ -18,6 +18,8 @@ from screen_audio_recorder import record_screen_and_audio
 from keyboard_handler import KeyboardShortcutHandler
 # Import video transcription function
 from video_transcription import transcribe_video
+# Import terminal UI functions
+from terminal_ui import init_curses, cleanup_curses, display_screen_template
 
 class CursesShortcutHandler:
     """Terminal UI with keyboard shortcut support using curses"""
@@ -51,27 +53,11 @@ class CursesShortcutHandler:
     def init_curses(self):
         """Initialize curses environment"""
         self.stdscr = curses.initscr()
-        curses.noecho()  # Don't echo keypresses
-        curses.cbreak()  # React to keys instantly
-        self.stdscr.keypad(True)  # Enable keypad mode
-        
-        # Try to enable colors if terminal supports it
-        if curses.has_colors():
-            curses.start_color()
-            curses.use_default_colors()  # Use terminal's default colors for better visibility
-            
-            # Slightly more vibrant but still subtle colors
-            curses.init_pair(1, 209, -1)  # Title - slightly brighter coral/orange
-            curses.init_pair(2, 68, -1)   # Highlight - slightly brighter blue
-            curses.init_pair(3, 147, -1)  # Footer - slightly brighter grayish-lavender
+        self.stdscr = init_curses(self.stdscr)
     
     def cleanup_curses(self):
         """Clean up curses on exit"""
-        if self.stdscr:
-            self.stdscr.keypad(False)
-            curses.echo()
-            curses.nocbreak()
-            curses.endwin()
+        cleanup_curses(self.stdscr)
     
     def start_keyboard_listener(self):
         """Start the keyboard shortcut listener"""
@@ -125,57 +111,7 @@ class CursesShortcutHandler:
     
     def display_screen_template(self, title, content, footer_text=None):
         """Common screen display template to reduce code duplication"""
-        if not self.stdscr:
-            return
-            
-        # Clear screen
-        self.stdscr.clear()
-        
-        # Get terminal dimensions
-        height, width = self.stdscr.getmaxyx()
-        
-        # Display border and title
-        self.stdscr.addstr(0, 0, "=" * (width-1))
-        
-        # Title with color if available
-        if curses.has_colors():
-            self.stdscr.addstr(1, 0, title.center(width-1), curses.color_pair(1))
-        else:
-            self.stdscr.addstr(1, 0, title.center(width-1))
-            
-        self.stdscr.addstr(2, 0, "=" * (width-1))
-        
-        # Display content
-        line_num = 4
-        for line in content:
-            self.stdscr.addstr(line_num, 0, line)
-            line_num += 1
-        
-        # Display footer
-        footer_line = height - 3
-        
-        # Footer with color if available
-        if curses.has_colors():
-            color = curses.color_pair(3)
-        else:
-            color = curses.A_NORMAL
-            
-        if footer_text:
-            self.stdscr.addstr(footer_line, 0, footer_text, color)
-        else:
-            self.stdscr.addstr(footer_line, 0, "Press ⇧⌥Z (Shift+Alt+Z) to start/stop recording", color)
-            self.stdscr.addstr(footer_line + 1, 0, "Press Ctrl+C to exit", color)
-        
-        # Bottom border
-        self.stdscr.addstr(height-1, 0, "=" * (width-1))
-        
-        # Display status message if any
-        if self.status_message:
-            msg_y = height - 5
-            self.stdscr.addstr(msg_y, 0, self.status_message, curses.A_DIM)
-        
-        # Update the screen
-        self.stdscr.refresh()
+        display_screen_template(self.stdscr, title, content, self.status_message, footer_text)
     
     def stop_recording(self):
         """Stop the active recording session"""
