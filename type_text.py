@@ -7,7 +7,9 @@ from pynput.keyboard import Controller, Key, Listener
 
 # Check if we're on macOS
 is_macos = platform.system() == 'Darwin'
-print(f"Running on: {platform.system()} {platform.release()}")
+# Only print system info when running the file directly, not when imported
+if __name__ == "__main__":
+    print(f"Running on: {platform.system()} {platform.release()}")
 
 # For debugging key events
 key_events = []
@@ -26,21 +28,24 @@ def on_release(key):
     except:
         pass
 
-def test_permission():
+def test_permission(verbose=False):
     """Test if we have accessibility permissions by trying to press and release a harmless key."""
     try:
-        print("Initializing keyboard controller...")
+        if verbose:
+            print("Initializing keyboard controller...")
         keyboard = Controller()
         
         # Try to press and immediately release a modifier key that won't have any effect
-        print("Testing with Alt key press/release...")
+        if verbose:
+            print("Testing with Alt key press/release...")
         keyboard.press(Key.alt)
         time.sleep(0.1)
         keyboard.release(Key.alt)
         return True
     except Exception as e:
-        print(f"Permission test failed: {e}")
-        traceback.print_exc()
+        if verbose:
+            print(f"Permission test failed: {e}")
+            traceback.print_exc()
         return False
 
 def type_text(text, countdown=False, verbose=False):
@@ -111,9 +116,14 @@ def type_text(text, countdown=False, verbose=False):
         return False
 
 if __name__ == "__main__":
+    # When running the script directly, we want verbose output
+    verbose_mode = True
+    
+    print(f"Running on: {platform.system()} {platform.release()}")
+    
     # First check if we have permission
     print("Testing accessibility permissions...")
-    permission_ok = test_permission()
+    permission_ok = test_permission(verbose=verbose_mode)
     
     if not permission_ok:
         print("\nERROR: Missing accessibility permissions!")
@@ -133,7 +143,7 @@ if __name__ == "__main__":
     
     # Execute typing
     print("\nPreparing to type text. Please click where you want to type...")
-    success = type_text(text_to_type, countdown=True, verbose=True)
+    success = type_text(text_to_type, countdown=True, verbose=verbose_mode)
     
     if success:
         print("\nText typing completed successfully.")
