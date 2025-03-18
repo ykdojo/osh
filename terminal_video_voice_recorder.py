@@ -91,6 +91,8 @@ class CursesShortcutHandler:
                     self.show_recording_done_screen(recording_path, recording_mode)
                     # Pass directly to transcription
                     self.transcription_handler.transcribe(recording_path, recording_mode)
+                else:
+                    self.show_main_screen()
             else:
                 # Display a "preparing to record" screen first
                 self.show_preparing_screen(mode)
