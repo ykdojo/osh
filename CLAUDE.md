@@ -27,6 +27,7 @@
 - The recorders module contains core recording functionality:
   - recorders/utils.py - Utility functions for device listing and audio/video combining
   - recorders/recorder.py - Core functions for audio and screen recording
+  - recorders/recording_handler.py - Manages recording sessions for both audio and video
 - The menu system is in menu_system.py with main menu and submenus defined in the main() function
 - Functional menus should have their implementation in separate files
 - Voice transcription is the primary menu and should always be the first option
@@ -34,6 +35,13 @@
 - Other files are supporting files or legacy code
 - Remember to make incremental changes rather than large rewrites
 - Recording files are automatically deleted after successful transcription
+
+## File Reorganization Plans
+- Consider renaming `recorder.py` to `capture_functions.py` to better describe its role
+- Move functionality from `audio_recorder.py` to `recorders/audio.py` 
+- Move functionality from `screen_audio_recorder.py` to `recorders/screen_audio.py`
+- This would better organize code by keeping recorder-related code in the recorders folder
+- Need to search for all import statements referencing these files to update them
 
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones
