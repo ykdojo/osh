@@ -113,7 +113,8 @@ class TranscriptionHandler:
         
         # Add separator and info about clipboard
         content.append("")
-        content.append("----------------------------------------")  # Add separator
+        content.append("")
+        content.append("-----")
         content.append("")
         content.append("Full transcription copied to clipboard.")
         
