@@ -9,13 +9,9 @@ import threading
 import time
 import os
 
-# Import keyboard shortcut handler
 from keyboard_handler import KeyboardShortcutHandler
-# Import terminal UI functions
 from terminal_ui import init_curses, cleanup_curses, display_screen_template
-# Import recording session handler
 from recorders.recording_handler import RecordingSession
-# Import transcription handler
 from transcription_handler import TranscriptionHandler
 
 class CursesShortcutHandler:
