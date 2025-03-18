@@ -83,6 +83,10 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         transcription_prompt = """
         Create a polished, professional transcription of this audio recording, completely removing all speech disfluencies.
         
+        IMPORTANT: 
+        - If there is no audio at all (complete silence), return exactly "NO_AUDIO"
+        - If there is audio but no clear/audible speech (only background noise, music, etc.), return exactly "NO_AUDIBLE_SPEECH"
+        
         Critical instructions:
         - You MUST remove ALL filler words (um, uh, like, you know, sort of, kind of, etc.)
         - You MUST remove ALL repetitions, stutters, false starts, and self-corrections

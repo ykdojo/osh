@@ -68,6 +68,11 @@ def transcribe_video(video_file_path=None, verbose=False):
         transcription_prompt = """
         Create a polished, professional transcription of this video, completely removing all speech disfluencies while carefully using the visual content as context.
         
+        IMPORTANT: 
+        - If there is no audio at all (complete silence), return exactly "NO_AUDIO"
+        - If there is audio but no clear/audible speech (only background noise, music, etc.), return exactly "NO_AUDIBLE_SPEECH"
+        - You MUST return these indicators even if there is visual content/activity on the screen
+        
         Critical instructions:
         - You MUST remove ALL filler words (um, uh, like, you know, sort of, kind of, etc.)
         - You MUST remove ALL repetitions, stutters, false starts, and self-corrections
