@@ -105,9 +105,9 @@ class RecordingSession:
         return True
     
     def stop(self):
-        """Stop the active recording session"""
+        """Stop the active recording session and return the recording path and mode"""
         if not self.is_recording:
-            return False
+            return None, None
             
         self.set_status("Stopping recording...")
         
@@ -120,7 +120,16 @@ class RecordingSession:
             self.recording_thread.join(timeout=5)  # Wait up to 5 seconds
         
         self.is_recording = False
-        return True
+        
+        # Return the recording path and mode directly
+        recording_path = self.recording_path
+        recording_mode = self.recording_mode
+        
+        # Reset the instance state
+        self.recording_path = None
+        self.recording_mode = None
+        
+        return recording_path, recording_mode
     
     def get_recording_info(self):
         """Get information about the completed recording"""
