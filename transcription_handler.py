@@ -104,18 +104,23 @@ class TranscriptionHandler:
         content = [
             "Your recording has been transcribed!",
             "",
-            "Transcription preview:"
+            "Transcription preview:",
+            ""  # Add a blank line after the preview heading
         ]
         
         # Add truncated transcription lines
         content.extend(display_lines)
         
-        # Add info about clipboard
+        # Add separator and info about clipboard
+        content.append("")
+        content.append("")
+        content.append("-----")
         content.append("")
         content.append("Full transcription copied to clipboard.")
         
         # Add note about deleted recording file
         if not os.path.exists(recording_path):
+            content.append("")
             content.append("Recording file has been deleted after successful transcription.")
         
         # Update UI via callback

@@ -26,8 +26,11 @@ class CursesShortcutHandler:
         self.stdscr = None
         self.status_message = ""
         
-        # Initialize recording session handler
-        self.recording_session = RecordingSession(status_callback=self.set_status_message)
+        # Initialize recording session handler with both status and recording started callbacks
+        self.recording_session = RecordingSession(
+            status_callback=self.set_status_message,
+            recording_started_callback=self.on_recording_started
+        )
         
         # Initialize transcription handler
         self.transcription_handler = TranscriptionHandler(
@@ -50,6 +53,16 @@ class CursesShortcutHandler:
     def set_exit(self):
         """Set exit flag"""
         self.is_running = False
+        
+    def on_recording_started(self, mode):
+        """
+        Callback that triggers when recording has actually started
+        
+        Args:
+            mode (str): 'audio' for audio-only or 'video' for screen and audio
+        """
+        # Now we know recording has actually started, show the recording screen
+        self.show_recording_screen(mode)
     
     def init_curses(self):
         """Initialize curses environment"""
@@ -73,11 +86,18 @@ class CursesShortcutHandler:
         """
         try:
             if self.recording_session.is_recording:
-                if self.recording_session.stop():
-                    self.show_recording_done_screen()
+                recording_path, recording_mode = self.recording_session.stop()
+                if recording_path:
+                    self.show_recording_done_screen(recording_path, recording_mode)
+                    # Pass directly to transcription
+                    self.transcription_handler.transcribe(recording_path, recording_mode)
             else:
-                if self.recording_session.start(mode):
-                    self.show_recording_screen(mode)
+                # Display a "preparing to record" screen first
+                self.show_preparing_screen(mode)
+                
+                # Start the recording - the on_recording_started callback will 
+                # handle displaying the recording screen when recording actually starts
+                self.recording_session.start(mode)
         except Exception as e:
             self.status_message = f"Error in toggle_recording: {e}"
             self.refresh_screen()
@@ -118,7 +138,24 @@ class CursesShortcutHandler:
             footer = "Press ⇧⌥Z (Shift+Alt+Z) to stop recording"
             self.display_screen_template("SCREEN RECORDING IN PROGRESS", content, footer)
     
-    def show_recording_done_screen(self):
+    def show_preparing_screen(self, mode="audio"):
+        """
+        Display a screen showing that recording is being prepared
+        
+        Args:
+            mode (str): 'audio' for audio-only or 'video' for screen and audio
+        """
+        if mode == "audio":
+            content = ["Preparing voice recording...", "Setting up audio device"]
+            footer = "Press ⇧⌥X (Shift+Alt+X) to cancel"
+            self.display_screen_template("PREPARING VOICE RECORDING", content, footer)
+        else:  # video mode
+            content = ["Preparing screen recording...", "Setting up screen capture and audio device"]
+            footer = "Press ⇧⌥Z (Shift+Alt+Z) to cancel"
+            self.display_screen_template("PREPARING SCREEN RECORDING", content, footer)
+    
+    
+    def show_recording_done_screen(self, recording_path, recording_mode):
         """Display recording done screen with recording path info"""
         content = [
             "Your recording has been completed.", 
@@ -126,22 +163,16 @@ class CursesShortcutHandler:
             "Processing recording..."
         ]
         
-        if self.recording_session.recording_path:
-            content.append(f"Recording saved to: {self.recording_session.recording_path}")
+        if recording_path:
+            content.append(f"Recording saved to: {recording_path}")
             
             # Show the processing screen with appropriate title based on recording mode
-            title = "VOICE RECORDING DONE!" if self.recording_session.recording_mode == "audio" else "SCREEN RECORDING DONE!"
+            title = "VOICE RECORDING DONE!" if recording_mode == "audio" else "SCREEN RECORDING DONE!"
             self.display_screen_template(title, content)
-            
-            # Start transcription using our handler
-            self.transcription_handler.transcribe(
-                self.recording_session.recording_path,
-                self.recording_session.recording_mode
-            )
         else:
-            error_type = "Voice" if self.recording_session.recording_mode == "audio" else "Screen"
+            error_type = "Voice" if recording_mode == "audio" else "Screen"
             content.append(f"Error: {error_type} recording failed or was interrupted")
-            title = "VOICE RECORDING DONE!" if self.recording_session.recording_mode == "audio" else "SCREEN RECORDING DONE!"
+            title = "VOICE RECORDING DONE!" if recording_mode == "audio" else "SCREEN RECORDING DONE!"
             self.display_screen_template(title, content)
     
     def run(self):

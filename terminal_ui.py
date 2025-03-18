@@ -72,8 +72,8 @@ def display_screen_template(stdscr, title, content, status_message="", footer_te
     if footer_text:
         stdscr.addstr(footer_line, 0, footer_text, color)
     else:
-        stdscr.addstr(footer_line - 1, 0, "Press ⇧⌥X (Shift+Alt+X) for audio-only recording", color)
-        stdscr.addstr(footer_line, 0, "Press ⇧⌥Z (Shift+Alt+Z) for screen+audio recording", color)
+        stdscr.addstr(footer_line - 5, 0, "Press ⇧⌥X (Shift+Alt+X) for audio-only recording", color)
+        stdscr.addstr(footer_line - 2, 0, "Press ⇧⌥Z (Shift+Alt+Z) for screen+audio recording", color)
         stdscr.addstr(footer_line + 1, 0, "Press Ctrl+C to exit", color)
     
     # Bottom border
@@ -81,7 +81,7 @@ def display_screen_template(stdscr, title, content, status_message="", footer_te
     
     # Display status message if any
     if status_message:
-        msg_y = height - 5
+        msg_y = height - 12  # Move status message much higher to avoid overlapping with any instructions
         stdscr.addstr(msg_y, 0, status_message, curses.A_DIM)
     
     # Update the screen

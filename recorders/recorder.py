@@ -96,7 +96,8 @@ def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
         print(f"Error saving audio file: {str(e)}")
         return None
 
-def record_screen(output_file, duration, framerate=30, resolution='1280x720', screen_index=None, stop_event=None, verbose=False):
+def record_screen(output_file, duration, framerate=30, resolution='1280x720', screen_index=None, 
+              stop_event=None, verbose=False, on_process_start=None):
     """
     Record screen only (no audio) using ffmpeg
     
@@ -108,6 +109,7 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
         screen_index (int, optional): Screen index to capture, if None will list available screens
         stop_event (threading.Event, optional): Event to signal manual interruption
         verbose (bool, optional): Whether to show detailed output logs
+        on_process_start (callable, optional): Callback function to execute when ffmpeg process actually starts
     
     Returns:
         str: Path to saved video file or None if failed
@@ -179,6 +181,15 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
+        
+        # Give ffmpeg a moment to initialize
+        time.sleep(0.5)
+        
+        # Check if the process has started properly
+        if process.poll() is None:  # None means it's still running
+            # Process has actually started, trigger the callback
+            if on_process_start:
+                on_process_start()
         
         # Create a function to monitor stop_event
         if stop_event:

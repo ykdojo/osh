@@ -12,13 +12,15 @@ from screen_audio_recorder import record_screen_and_audio
 class RecordingSession:
     """Manages a recording session with audio and video"""
     
-    def __init__(self, status_callback=None):
+    def __init__(self, status_callback=None, recording_started_callback=None):
         self.is_recording = False
         self.recording_path = None
         self.recording_thread = None
         self.manual_stop_event = None
         self.status_callback = status_callback
+        self.recording_started_callback = recording_started_callback
         self.recording_mode = None  # 'audio' or 'video'
+        self.recording_actually_started = False
     
     def set_status(self, message):
         """Update status message via callback if provided"""
@@ -38,8 +40,17 @@ class RecordingSession:
         # Create a new stop event for this recording session
         self.manual_stop_event = threading.Event()
         
+        # Reset recording started flag
+        self.recording_actually_started = False
+        
         # Store the recording mode
         self.recording_mode = mode
+        
+        # Custom callback function for when ffmpeg/recording process actually starts
+        def on_recording_started():
+            self.recording_actually_started = True
+            if self.recording_started_callback:
+                self.recording_started_callback(mode)
         
         # Set the output path based on recording mode
         timestamp = int(time.time())
@@ -49,11 +60,16 @@ class RecordingSession:
             # Create and start the recording thread for audio only
             def recording_thread_func():
                 try:
+                    # Signal that recording is about to start (preparation phase)
+                    self.set_status("Preparing audio devices...")
+                    
+                    # Call record_audio_only with a callback
                     self.recording_path = record_audio_only(
                         output_file=output_file,
                         duration=7200,  # Set to 2 hours (7200 seconds)
                         verbose=False,
-                        manual_stop_event=self.manual_stop_event
+                        manual_stop_event=self.manual_stop_event,
+                        on_recording_started=on_recording_started
                     )
                 except Exception as e:
                     self.set_status(f"Audio recording error: {str(e)}")
@@ -65,11 +81,16 @@ class RecordingSession:
             # Create and start the recording thread for screen and audio
             def recording_thread_func():
                 try:
+                    # Signal that recording is about to start (preparation phase)
+                    self.set_status("Preparing screen and audio devices...")
+                    
+                    # Call record_screen_and_audio with a callback
                     self.recording_path = record_screen_and_audio(
                         output_file=output_file,
                         duration=7200,  # Set to 2 hours (7200 seconds)
                         verbose=False,
-                        manual_stop_event=self.manual_stop_event
+                        manual_stop_event=self.manual_stop_event,
+                        on_recording_started=on_recording_started
                     )
                 except Exception as e:
                     self.set_status(f"Screen recording error: {str(e)}")
@@ -84,9 +105,9 @@ class RecordingSession:
         return True
     
     def stop(self):
-        """Stop the active recording session"""
+        """Stop the active recording session and return the recording path and mode"""
         if not self.is_recording:
-            return False
+            return None, None
             
         self.set_status("Stopping recording...")
         
@@ -99,7 +120,16 @@ class RecordingSession:
             self.recording_thread.join(timeout=5)  # Wait up to 5 seconds
         
         self.is_recording = False
-        return True
+        
+        # Return the recording path and mode directly
+        recording_path = self.recording_path
+        recording_mode = self.recording_mode
+        
+        # Reset the instance state
+        self.recording_path = None
+        self.recording_mode = None
+        
+        return recording_path, recording_mode
     
     def get_recording_info(self):
         """Get information about the completed recording"""
