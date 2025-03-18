@@ -63,7 +63,7 @@ class CursesShortcutHandler:
     def init_curses(self):
         """Initialize curses environment"""
         self.stdscr = curses.initscr()
-        self.stdscr = init_curses(self.stdscr)
+        init_curses(self.stdscr)
     
     def cleanup_curses(self):
         """Clean up curses on exit"""
