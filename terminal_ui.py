@@ -81,7 +81,7 @@ def display_screen_template(stdscr, title, content, status_message="", footer_te
     
     # Display status message if any
     if status_message:
-        msg_y = height - 5
+        msg_y = height - 12  # Move status message much higher to avoid overlapping with any instructions
         stdscr.addstr(msg_y, 0, status_message, curses.A_DIM)
     
     # Update the screen
