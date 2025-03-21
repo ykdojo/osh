@@ -127,6 +127,7 @@ class CursesShortcutHandler:
         Args:
             mode (str): 'audio' for audio-only or 'video' for screen and audio
         """
+        # The status message will contain the microphone information (added via callback)
         if mode == "audio":
             content = ["Voice Recording active...", "Capturing audio only"]
             footer = "Press ⇧⌥X (Shift+Alt+X) to stop recording"

@@ -18,7 +18,8 @@ from recorders.recorder import record_audio, record_screen
 
 
 def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, verbose=False, 
-                        screen_index=None, manual_stop_event=None, on_recording_started=None):
+                        screen_index=None, manual_stop_event=None, on_recording_started=None,
+                        status_callback=None):
     """
     Record high-quality screen and audio simultaneously using threading,
     with audio recording stopping when screen recording finishes
@@ -30,6 +31,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         screen_index (int, optional): Screen index to capture, if None will use default
         manual_stop_event (threading.Event, optional): Event to trigger manual stopping from outside
         on_recording_started (callable, optional): Callback function to execute when recording actually starts
+        status_callback (callable, optional): Callback function to report status updates
     
     Returns:
         str: Path to final combined file or None if failed
@@ -84,7 +86,7 @@ def record_screen_and_audio(output_file='combined_recording.mp4', duration=7, ve
         # Define function to run audio recording in a thread
         def audio_recording_thread():
             try:
-                audio_result[0] = record_audio(temp_audio_path, verbose=verbose, stop_event=stop_event)
+                audio_result[0] = record_audio(temp_audio_path, verbose=verbose, stop_event=stop_event, status_callback=status_callback)
             except Exception as e:
                 if verbose:
                     print(f"Error in audio recording thread: {str(e)}")

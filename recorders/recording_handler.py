@@ -69,7 +69,8 @@ class RecordingSession:
                         duration=7200,  # Set to 2 hours (7200 seconds)
                         verbose=False,
                         manual_stop_event=self.manual_stop_event,
-                        on_recording_started=on_recording_started
+                        on_recording_started=on_recording_started,
+                        status_callback=self.status_callback
                     )
                 except Exception as e:
                     self.set_status(f"Audio recording error: {str(e)}")
@@ -90,7 +91,8 @@ class RecordingSession:
                         duration=7200,  # Set to 2 hours (7200 seconds)
                         verbose=False,
                         manual_stop_event=self.manual_stop_event,
-                        on_recording_started=on_recording_started
+                        on_recording_started=on_recording_started,
+                        status_callback=self.status_callback
                     )
                 except Exception as e:
                     self.set_status(f"Screen recording error: {str(e)}")

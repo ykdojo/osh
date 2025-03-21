@@ -12,7 +12,7 @@ import time
 # Import utility functions from utils module
 from recorders.utils import list_audio_devices, list_screen_devices
 
-def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
+def record_audio(output_file, fs=44100, verbose=False, stop_event=None, status_callback=None):
     """
     Record high-quality audio from default microphone until stop_event is set
     
@@ -21,6 +21,7 @@ def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
         fs (int): Sample rate in Hz
         verbose (bool): Whether to show detailed output logs
         stop_event (threading.Event): Event to signal when to stop recording
+        status_callback (callable): Optional callback to report status updates
     
     Returns:
         str: Path to saved audio file or None if failed
@@ -32,8 +33,14 @@ def record_audio(output_file, fs=44100, verbose=False, stop_event=None):
     # Use default device
     device_info = sd.query_devices(kind='input')
     
+    # Get device name and report it
+    mic_name = device_info['name']
     if verbose:
-        print(f"Using audio device: {device_info['name']}")
+        print(f"Using audio device: {mic_name}")
+    
+    # Report microphone information through the callback if provided
+    if status_callback:
+        status_callback(f"Using audio device: {mic_name}")
     
     # Maximum buffer size (30 minutes of audio at given sample rate)
     max_frames = int(1800 * fs)

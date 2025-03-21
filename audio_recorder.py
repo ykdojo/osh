@@ -15,7 +15,7 @@ from recorders.recorder import record_audio
 
 
 def record_audio_only(output_file='audio_recording.wav', duration=10, verbose=False, 
-                  manual_stop_event=None, on_recording_started=None):
+                  manual_stop_event=None, on_recording_started=None, status_callback=None):
     """
     Record high-quality audio using threading with ability to stop manually
     
@@ -25,6 +25,7 @@ def record_audio_only(output_file='audio_recording.wav', duration=10, verbose=Fa
         verbose (bool): Whether to show detailed output logs
         manual_stop_event (threading.Event, optional): Event to trigger manual stopping from outside
         on_recording_started (callable, optional): Callback function to execute when recording actually starts
+        status_callback (callable, optional): Callback function to report status updates
     
     Returns:
         str: Path to recorded audio file or None if failed
@@ -99,7 +100,7 @@ def record_audio_only(output_file='audio_recording.wav', duration=10, verbose=Fa
         callback_thread.start()
         
         # Start audio recording
-        result = record_audio(output_file, verbose=verbose, stop_event=stop_event)
+        result = record_audio(output_file, verbose=verbose, stop_event=stop_event, status_callback=status_callback)
         
         if verbose:
             print("\n=== Recording Process Completed ===")
