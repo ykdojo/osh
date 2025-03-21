@@ -220,16 +220,16 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
         process.wait()
         
         # Check return code
-        if process.returncode != 0 and process.returncode != -15:  # -15 is for SIGTERM which is ok
-            if verbose:
-                if hasattr(process, 'stderr') and process.stderr:
-                    stderr = process.stderr.read().decode('utf-8')
-                    if "Interrupt" not in stderr and "Operation not permitted" not in stderr:
-                        print(f"Error during screen recording: {stderr}")
-                        return None
-                else:
-                    print(f"Error during screen recording (return code: {process.returncode})")
-                    return None
+        if process.returncode != 0 and process.returncode != -15:
+            stderr_msg = ""
+            if hasattr(process, 'stderr') and process.stderr:
+                stderr_msg = process.stderr.read().decode('utf-8')
+                
+            if stderr_msg and "Interrupt" not in stderr_msg and "Operation not permitted" not in stderr_msg:
+                print(f"Error during screen recording: {stderr_msg}")
+            else:
+                print(f"Error during screen recording (return code: {process.returncode})")
+            return None
         
         if verbose:
             print(f"Screen recording completed and saved to {output_file}")
