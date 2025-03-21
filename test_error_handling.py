@@ -17,9 +17,10 @@ def test_error_handler():
     if hasattr(process, 'stderr') and process.stderr:
         stderr_msg = process.stderr.read().decode('utf-8')
         
-    if stderr_msg and "Interrupt" not in stderr_msg and "Operation not permitted" not in stderr_msg:
+    verbose = True  # Set to True for testing
+    if stderr_msg and "Interrupt" not in stderr_msg and "Operation not permitted" not in stderr_msg and verbose:
         print(f"Error during screen recording: {stderr_msg}")
-    else:
+    elif verbose:
         print(f"Error during screen recording (return code: {process.returncode})")
     
     # Test case 2: Interrupt error
@@ -29,9 +30,10 @@ def test_error_handler():
     if hasattr(process, 'stderr') and process.stderr:
         stderr_msg = process.stderr.read().decode('utf-8')
         
-    if stderr_msg and "Interrupt" not in stderr_msg and "Operation not permitted" not in stderr_msg:
+    verbose = True  # Set to True for testing
+    if stderr_msg and "Interrupt" not in stderr_msg and "Operation not permitted" not in stderr_msg and verbose:
         print(f"Error during screen recording: {stderr_msg}")
-    else:
+    elif verbose:
         print(f"Error during screen recording (return code: {process.returncode})")
 
 if __name__ == "__main__":

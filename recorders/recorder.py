@@ -224,10 +224,9 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
             stderr_msg = ""
             if hasattr(process, 'stderr') and process.stderr:
                 stderr_msg = process.stderr.read().decode('utf-8')
-                
-            if stderr_msg and "Interrupt" not in stderr_msg and "Operation not permitted" not in stderr_msg:
+            if stderr_msg and "Interrupt" not in stderr_msg and "Operation not permitted" not in stderr_msg and verbose:
                 print(f"Error during screen recording: {stderr_msg}")
-            else:
+            elif verbose:
                 print(f"Error during screen recording (return code: {process.returncode})")
             return None
         
