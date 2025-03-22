@@ -119,7 +119,7 @@ class RecordingSession:
         
         # Wait for the recording thread to complete
         if self.recording_thread and self.recording_thread.is_alive():
-            self.recording_thread.join(timeout=5)  # Wait up to 5 seconds
+            self.recording_thread.join()  # Wait until thread completes
         
         self.is_recording = False
         
