@@ -8,7 +8,8 @@ A terminal-based application for recording audio/screen and transcribing content
 - Global keyboard shortcuts (⇧⌥X for audio, ⇧⌥Z for screen recording)
 - Audio-only or combined screen+audio recording
 - Automatic transcription of recordings using Gemini AI
-- Auto-deletion of recordings after successful transcription
+- Preservation of recording files for future reference
+- Simple cleanup script for managing recording files
 - Automatic clipboard copying and text entry of transcriptions
 - Status notifications of recording devices and progress
 
@@ -39,6 +40,12 @@ A terminal-based application for recording audio/screen and transcribing content
    source activate_env.sh
    python terminal_video_voice_recorder.py
    ```
+
+5. To clean up recording files when needed:
+   ```bash
+   bash cleanup_recordings.sh
+   ```
+   This will list all recording files and ask for confirmation before deletion.
 
 ## Keyboard Shortcuts
 
@@ -72,3 +79,4 @@ A terminal-based application for recording audio/screen and transcribing content
   
 - **Utilities**:
   - `type_text.py`: Utility for typing transcribed text at cursor position
+  - `cleanup_recordings.sh`: Script for cleaning up recording files
