@@ -84,8 +84,9 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         Create a polished, professional transcription of this audio recording, completely removing all speech disfluencies.
         
         IMPORTANT: 
-        - If there is no audio at all (complete silence), return exactly "NO_AUDIO"
-        - If there is audio but no clear/audible speech (only background noise, music, etc.), return exactly "NO_AUDIBLE_SPEECH"
+        - If there is any audio, attempt to transcribe it even if it seems like background noise
+        - Only if there is absolutely no audio at all (complete silence), return exactly "NO_AUDIO"
+        - If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"
         
         Critical instructions:
         - You MUST remove ALL filler words (um, uh, like, you know, sort of, kind of, etc.)
@@ -100,6 +101,7 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         - Preserve all technical terms, names, and specialized vocabulary accurately
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
         - Preserve the original meaning while substantially improving speech clarity
+        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
         
         Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
         Make it concise, clear, and professional - as if it had been carefully edited for publication.
