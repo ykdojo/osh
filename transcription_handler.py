@@ -65,13 +65,9 @@ class TranscriptionHandler:
                     verbose=False
                 )
             
-            # Remove the recording file after successful transcription
+            # Keep all recording files (both audio and video)
             if self.transcription and os.path.exists(recording_path):
-                try:
-                    os.remove(recording_path)
-                    self.set_status("Transcription complete! Recording file deleted.")
-                except Exception as e:
-                    self.set_status(f"Transcription complete! Failed to remove recording: {e}")
+                self.set_status("Transcription complete! Recording file preserved.")
             
             # Show transcription results
             self.show_transcription(recording_path)
@@ -118,10 +114,10 @@ class TranscriptionHandler:
         content.append("")
         content.append("Full transcription copied to clipboard.")
         
-        # Add note about deleted recording file
-        if not os.path.exists(recording_path):
+        # Add note about recording file location
+        if os.path.exists(recording_path):
             content.append("")
-            content.append("Recording file has been deleted after successful transcription.")
+            content.append(f"Recording file preserved at: {recording_path}")
         
         # Update UI via callback
         if self.ui_callback:
