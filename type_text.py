@@ -50,7 +50,7 @@ def test_permission(verbose=False):
 
 def type_text(text, countdown=False, verbose=False):
     """
-    Type the given text at the current cursor position all at once.
+    Type the given text at the current cursor position character by character.
     
     Args:
         text (str): The text to type
@@ -73,34 +73,23 @@ def type_text(text, countdown=False, verbose=False):
             print("Now typing...")
             print(f"About to type: '{text}'")
         
-        # Type the entire text by writing it to the clipboard and pasting it
-        # This approach avoids potential issues with the keyboard.type() method
-        try:
-            import pyperclip
-            # Save original clipboard content
-            original_clipboard = pyperclip.paste()
-            
-            # Copy our text to clipboard
-            pyperclip.copy(text)
-            
-            # Paste using keyboard shortcut
-            with keyboard.pressed(Key.ctrl if not is_macos else Key.cmd):
-                keyboard.press('v')
-                keyboard.release('v')
-                
-            # Wait a moment before restoring clipboard
-            time.sleep(0.5)
-            
-            # Restore original clipboard content
-            pyperclip.copy(original_clipboard)
-            
-        except ImportError:
-            if verbose:
-                print("pyperclip module not found. Falling back to manual typing.")
-            # Manual typing as fallback - no delays between characters
-            for char in text:
+        # Type directly character by character
+        # This avoids clipboard issues with images or other non-text content
+        for char in text:
+            # Handle special characters
+            if char == '\n':
+                keyboard.press(Key.enter)
+                keyboard.release(Key.enter)
+            elif char == '\t':
+                keyboard.press(Key.tab)
+                keyboard.release(Key.tab)
+            else:
                 keyboard.press(char)
                 keyboard.release(char)
+            
+            # Small delay to prevent missed keystrokes on some systems
+            # Adjust this value if typing is too slow or missing characters
+            time.sleep(0.01)
         
         # Print debug info about registered keystrokes if verbose
         if verbose and key_events:
@@ -139,7 +128,7 @@ if __name__ == "__main__":
     listener.start()
     
     # Text to type (can be modified as needed)
-    text_to_type = "Hello, this is a test of programmatic typing!"
+    text_to_type = "Hello, this is a test of programmatic typing!\nIt handles special characters: !@#$%^&*()\nAnd has\ttabs and\nnewlines too."
     
     # Execute typing
     print("\nPreparing to type text. Please click where you want to type...")
