@@ -66,7 +66,7 @@ def transcribe_video(video_file_path=None, verbose=False):
         
         # Transcription prompt
         transcription_prompt = """
-        Create a polished, professional transcription of this video, completely removing all speech disfluencies while carefully using the visual content as context.
+        Create a natural, context-appropriate transcription of this video, removing speech disfluencies while carefully using the visual content as context and preserving the speaker's intent and style.
         
         IMPORTANT: 
         - If there is any audio, attempt to transcribe it even if it seems like background noise
@@ -75,14 +75,15 @@ def transcribe_video(video_file_path=None, verbose=False):
         - You MUST return these indicators even if there is visual content/activity on the screen
         
         Critical instructions:
-        - You MUST remove ALL filler words (um, uh, like, you know, sort of, kind of, etc.)
-        - You MUST remove ALL repetitions, stutters, false starts, and self-corrections
-        - You MUST eliminate ALL verbal crutches and speech disfluencies
-        - You MUST convert hesitant, rambling speech into clear, articulate sentences
+        - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)
+        - Remove repetitions, stutters, false starts, and self-corrections
+        - Eliminate verbal crutches and speech disfluencies
         - You MUST NOT include phrases like "Here's the transcript:" or any other headers
         - You MUST NOT add timestamps or speaker attributions 
         - You MUST NOT include any introductory or concluding remarks
         - You MUST begin immediately with the transcribed content
+        - Use punctuation that fits the context (question marks for questions, colons for introductions, exclamation points for emphasis, etc.)
+        - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
         - For longer speech, use appropriate paragraph breaks for readability
         - Pay careful attention to text and names visible on screen (file names, people names, place names)
         - When the speaker refers to on-screen elements, preserve those references accurately

@@ -81,7 +81,7 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         
         # Transcription prompt
         transcription_prompt = """
-        Create a polished, professional transcription of this audio recording, completely removing all speech disfluencies.
+        Create a natural, context-appropriate transcription of this audio recording, removing speech disfluencies but preserving the speaker's intent and style.
         
         IMPORTANT: 
         - If there is any audio, attempt to transcribe it even if it seems like background noise
@@ -89,14 +89,15 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         - If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"
         
         Critical instructions:
-        - You MUST remove ALL filler words (um, uh, like, you know, sort of, kind of, etc.)
-        - You MUST remove ALL repetitions, stutters, false starts, and self-corrections
-        - You MUST eliminate ALL verbal crutches and speech disfluencies
-        - You MUST convert hesitant, rambling speech into clear, articulate sentences
+        - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)
+        - Remove repetitions, stutters, false starts, and self-corrections
+        - Eliminate verbal crutches and speech disfluencies
         - You MUST NOT include phrases like "Here's the transcript:" or any other headers
         - You MUST NOT add timestamps or speaker attributions 
         - You MUST NOT include any introductory or concluding remarks
         - You MUST begin immediately with the transcribed content
+        - Use punctuation that fits the context (question marks for questions, colons for introductions, exclamation points for emphasis, etc.)
+        - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
         - For longer speech, use appropriate paragraph breaks for readability
         - Preserve all technical terms, names, and specialized vocabulary accurately
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
