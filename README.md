@@ -2,6 +2,8 @@
 
 A terminal-based application for recording audio/screen and transcribing content with Gemini AI.
 
+> **Note**: This application is primarily designed for macOS but should work on other platforms (Linux, Windows) with appropriate configurations. Some features may require platform-specific adjustments.
+
 ## Features
 
 - Terminal-based UI with simple navigation
