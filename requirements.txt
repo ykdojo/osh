@@ -6,3 +6,4 @@ ffmpeg-python>=0.2.0
 sounddevice>=0.5.1
 soundfile>=0.13.1
 numpy>=1.20.0
+pyperclip>=1.9.0

@@ -6,6 +6,7 @@ Manages the transcription process and results presentation.
 
 import os
 import threading
+import pyperclip
 from audio_transcription import transcribe_audio
 from video_transcription import transcribe_video
 from type_text import type_text
@@ -91,6 +92,9 @@ class TranscriptionHandler:
         display_lines = []
         for i in range(0, len(transcription_display), 60):
             display_lines.append(transcription_display[i:i+60])
+            
+        # Copy full transcription to clipboard
+        pyperclip.copy(self.transcription)
         
         # Display information about the transcription
         content = [
@@ -103,12 +107,12 @@ class TranscriptionHandler:
         # Add truncated transcription lines
         content.extend(display_lines)
         
-        # Add separator and info about typing
+        # Add separator and info about clipboard
         content.append("")
         content.append("")
         content.append("-----")
         content.append("")
-        content.append("Transcription has been typed at your cursor position.")
+        content.append("Full transcription copied to clipboard.")
         
         # Add note about recording file location
         if os.path.exists(recording_path):
@@ -152,7 +156,7 @@ class TranscriptionHandler:
                 "Recording information:",
                 recording_info,
                 "",
-                "Recording path has been typed at your cursor position."
+                "Recording path copied to clipboard."
             ]
             
             # Add note about transcription failure
@@ -168,6 +172,7 @@ class TranscriptionHandler:
             
             # Type the recording path at the cursor position without countdown or verbose output
             if recording_path and os.path.exists(recording_path):
+                pyperclip.copy(recording_path)
                 type_text(recording_path, countdown=False, verbose=False)
         else:
             # Handle case where recording path doesn't exist
