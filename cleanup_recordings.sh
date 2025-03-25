@@ -15,9 +15,12 @@ fi
 echo "The following recording files will be deleted:"
 echo "$RECORDINGS"
 
+# Count the total number of files
+TOTAL_FILES=$(echo "$RECORDINGS" | wc -l | tr -d ' ')
+
 # Ask for confirmation
 echo
-read -p "Are you sure you want to delete these files? (y/n): " CONFIRM
+read -p "Are you sure you want to delete these $TOTAL_FILES files? (y/n): " CONFIRM
 
 if [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]; then
     # Delete the files
