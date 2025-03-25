@@ -43,6 +43,40 @@ def get_common_words_section():
     
     return common_words_section
 
+def get_common_instructions():
+    """
+    Get the common instructions section used in both audio and video transcription prompts
+    
+    Returns:
+        str: Formatted common instructions 
+    """
+    return """
+        - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)
+        - Remove repetitions, stutters, false starts, and self-corrections
+        - Eliminate verbal crutches and speech disfluencies
+        - You MUST NOT include phrases like "Here's the transcript:" or any other headers
+        - You MUST NOT add timestamps or speaker attributions 
+        - You MUST NOT include any introductory or concluding remarks
+        - You MUST begin immediately with the transcribed content
+        - Use punctuation that fits the context (question marks for questions, colons for introductions, exclamation points for emphasis, etc.)
+        - Preserve speech tone and emotion - use exclamation marks for excitement, enthusiasm, or strong emotions, even if it's subtle or mild
+        - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
+        - For longer speech, use appropriate paragraph breaks for readability
+        - Preserve the original meaning while substantially improving speech clarity
+        - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
+        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering"""
+
+def get_common_goal():
+    """
+    Get the common goal statement used in both audio and video transcription prompts
+    
+    Returns:
+        str: Formatted common goal statement
+    """
+    return """
+        Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
+        Make it concise, clear, and professional - as if it had been carefully edited for publication."""
+
 def get_audio_transcription_prompt():
     """
     Get the complete prompt for audio transcription
@@ -51,6 +85,8 @@ def get_audio_transcription_prompt():
         str: Complete audio transcription prompt with common words
     """
     common_words_section = get_common_words_section()
+    common_instructions = get_common_instructions()
+    common_goal = get_common_goal()
     
     return f"""
         Create a natural, context-appropriate transcription of this audio recording, removing speech disfluencies but preserving the speaker's intent and style.
@@ -61,23 +97,9 @@ def get_audio_transcription_prompt():
         - If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"{common_words_section}
         
         Critical instructions:
-        - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)
-        - Remove repetitions, stutters, false starts, and self-corrections
-        - Eliminate verbal crutches and speech disfluencies
-        - You MUST NOT include phrases like "Here's the transcript:" or any other headers
-        - You MUST NOT add timestamps or speaker attributions 
-        - You MUST NOT include any introductory or concluding remarks
-        - You MUST begin immediately with the transcribed content
-        - Use punctuation that fits the context (question marks for questions, colons for introductions, exclamation points for emphasis, etc.)
-        - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
-        - For longer speech, use appropriate paragraph breaks for readability
+{common_instructions}
         - Preserve all technical terms, names, and specialized vocabulary accurately
-        - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
-        - Preserve the original meaning while substantially improving speech clarity
-        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
-        
-        Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
-        Make it concise, clear, and professional - as if it had been carefully edited for publication.
+{common_goal}
         """
 
 def get_video_transcription_prompt():
@@ -88,6 +110,8 @@ def get_video_transcription_prompt():
         str: Complete video transcription prompt with common words
     """
     common_words_section = get_common_words_section()
+    common_instructions = get_common_instructions()
+    common_goal = get_common_goal()
     
     return f"""
         Create a natural, context-appropriate transcription of this video, removing speech disfluencies while carefully using the visual content as context and preserving the speaker's intent and style.
@@ -99,24 +123,10 @@ def get_video_transcription_prompt():
         - You MUST return these indicators even if there is visual content/activity on the screen{common_words_section}
         
         Critical instructions:
-        - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)
-        - Remove repetitions, stutters, false starts, and self-corrections
-        - Eliminate verbal crutches and speech disfluencies
-        - You MUST NOT include phrases like "Here's the transcript:" or any other headers
-        - You MUST NOT add timestamps or speaker attributions 
-        - You MUST NOT include any introductory or concluding remarks
-        - You MUST begin immediately with the transcribed content
-        - Use punctuation that fits the context (question marks for questions, colons for introductions, exclamation points for emphasis, etc.)
-        - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
-        - For longer speech, use appropriate paragraph breaks for readability
+{common_instructions}
         - Pay careful attention to text and names visible on screen (file names, people names, place names)
         - When the speaker refers to on-screen elements, preserve those references accurately
         - Capture technical terms, code, and commands with 100% accuracy
-        - Preserve the original meaning while substantially improving speech clarity
-        - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
         - Follow the specific capitalization patterns shown on-screen for names, brands, and technical terms
-        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
-        
-        Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
-        Make it concise, clear, and professional - as if it had been carefully edited for publication.
+{common_goal}
         """
