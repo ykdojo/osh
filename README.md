@@ -7,6 +7,8 @@
 - **Customizable vocabulary**: Add frequently used terms to improve transcription accuracy of specialized terms
 - **Open source**: Full control to modify and extend functionality to fit your specific needs
 
+OSH is the **O**pen-source terminal helper that can **S**ee your screen and **H**ear your voice.
+
 > **Note**: This application is primarily designed for macOS but should work on other platforms (Linux, Windows) with appropriate configurations. Some features may require platform-specific adjustments.
 
 ## Features
