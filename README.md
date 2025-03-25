@@ -1,6 +1,11 @@
-# OSH - Terminal Audio/Screen Recorder with Transcription
+# OSH - Automate 99% of your typing for free
 
-A terminal-based application for recording audio/screen and transcribing content with Gemini AI.
+**Access the most advanced AI models** for voice transcription. OSH is the open-source solution that lets you speak instead of type, with screen-sharing capabilities that solve the problem of accurately capturing names and technical terms.
+
+- **Free access**: Uses Gemini's API to transcribe your content at no cost
+- **Screen + voice recording**: Ensures proper spelling of names and technical terms where other voice-only tools fail
+- **Customizable vocabulary**: Add frequently used terms to improve transcription accuracy of specialized terms
+- **Open source**: Full control to modify and extend functionality to fit your specific needs
 
 > **Note**: This application is primarily designed for macOS but should work on other platforms (Linux, Windows) with appropriate configurations. Some features may require platform-specific adjustments.
 
