@@ -1,9 +1,9 @@
 #!/bin/bash
 # Simple script to remove all recording files
 
-# Find all recording files (mp4 for video, wav for audio)
+# Find all recording files (mp4 for video, wav for audio, txt for transcriptions)
 echo "Finding recording files..."
-RECORDINGS=$(find . -name "recording_*.mp4" -o -name "recording_*.wav")
+RECORDINGS=$(find . -name "recording_*.mp4" -o -name "recording_*.wav" -o -name "recording_*.txt")
 
 # Check if any files were found
 if [ -z "$RECORDINGS" ]; then

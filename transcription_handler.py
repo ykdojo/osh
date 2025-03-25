@@ -7,6 +7,7 @@ Manages the transcription process and results presentation.
 import os
 import threading
 import pyperclip
+import time
 from audio_transcription import transcribe_audio
 from video_transcription import transcribe_video
 from type_text import type_text
@@ -25,11 +26,37 @@ class TranscriptionHandler:
         self.ui_callback = ui_callback
         self.status_callback = status_callback
         self.transcription = None
+        self.transcription_path = None
     
     def set_status(self, message):
         """Update status via callback"""
         if self.status_callback:
             self.status_callback(message)
+            
+    def save_transcription_text(self, text):
+        """
+        Save the transcription text to a file
+        
+        Args:
+            text (str): The text to save
+            
+        Returns:
+            str: Path to the saved file
+        """
+        try:
+            # Create a filename with timestamp similar to recordings
+            timestamp = int(time.time())
+            filename = f"recording_{timestamp}.txt"
+            
+            # Write the text to the file
+            with open(filename, 'w') as f:
+                f.write(text)
+                
+            # Return the relative path, consistent with how we show recording paths
+            return filename
+        except Exception as e:
+            self.set_status(f"Error saving transcription text: {str(e)}")
+            return None
     
     def transcribe(self, recording_path, recording_mode):
         """
@@ -69,7 +96,8 @@ class TranscriptionHandler:
             if self.transcription and os.path.exists(recording_path):
                 self.set_status("Transcription complete! Recording file preserved.")
             
-            # Show transcription results
+            # Save transcription to a file and show results
+            self.transcription_path = self.save_transcription_text(self.transcription)
             self.show_transcription(recording_path)
         except Exception as e:
             self.set_status(f"Transcription error: {str(e)}")
@@ -118,6 +146,11 @@ class TranscriptionHandler:
         if os.path.exists(recording_path):
             content.append("")
             content.append(f"Recording file preserved at: {recording_path}")
+            
+        # Add note about transcription text file
+        if self.transcription_path and os.path.exists(self.transcription_path):
+            content.append("")
+            content.append(f"Transcription saved to: {self.transcription_path}")
         
         # Update UI via callback
         if self.ui_callback:
