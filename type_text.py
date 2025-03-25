@@ -88,9 +88,9 @@ def type_text(text, countdown=False, verbose=False):
                 keyboard.release(char)
             
             # Small delay to prevent missed keystrokes on some systems
-            # Using a balanced delay (0.005s) for more reliable typing while maintaining good speed
-            # This is 2.5x slower than the original 0.002s delay, balancing responsiveness and speed
-            time.sleep(0.005)
+            # Using a slightly faster delay (0.003s) for better speed while maintaining reliability
+            # This is 1.5x slower than the original 0.002s delay, offering a good balance
+            time.sleep(0.003)
         
         # Print debug info about registered keystrokes if verbose
         if verbose and key_events:
