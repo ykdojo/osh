@@ -73,34 +73,11 @@ def type_text(text, countdown=False, verbose=False):
             print("Now typing...")
             print(f"About to type: '{text}'")
         
-        # Type the entire text by writing it to the clipboard and pasting it
-        # This approach avoids potential issues with the keyboard.type() method
-        try:
-            import pyperclip
-            # Save original clipboard content
-            original_clipboard = pyperclip.paste()
-            
-            # Copy our text to clipboard
-            pyperclip.copy(text)
-            
-            # Paste using keyboard shortcut
-            with keyboard.pressed(Key.ctrl if not is_macos else Key.cmd):
-                keyboard.press('v')
-                keyboard.release('v')
-                
-            # Wait a moment before restoring clipboard
-            time.sleep(0.5)
-            
-            # Restore original clipboard content
-            pyperclip.copy(original_clipboard)
-            
-        except ImportError:
-            if verbose:
-                print("pyperclip module not found. Falling back to manual typing.")
-            # Manual typing as fallback - no delays between characters
-            for char in text:
-                keyboard.press(char)
-                keyboard.release(char)
+        # Type directly character by character
+        # This may be slower but avoids using clipboard
+        for char in text:
+            keyboard.press(char)
+            keyboard.release(char)
         
         # Print debug info about registered keystrokes if verbose
         if verbose and key_events:
