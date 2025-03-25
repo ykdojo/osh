@@ -10,6 +10,9 @@ import base64
 from dotenv import load_dotenv
 import google.generativeai as genai
 
+# Import the load_common_words function from audio_transcription
+from audio_transcription import load_common_words
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -64,15 +67,22 @@ def transcribe_video(video_file_path=None, verbose=False):
         # Create parts for the generation
         video_part = {"mime_type": "video/mp4", "data": video_data}
         
+        # Load common words to include in the prompt
+        common_words = load_common_words()
+        common_words_section = ""
+        
+        if common_words:
+            common_words_section = "\n        IMPORTANT TERMS TO PRESERVE EXACTLY:\n        - " + "\n        - ".join(common_words) + "\n"
+        
         # Transcription prompt
-        transcription_prompt = """
+        transcription_prompt = f"""
         Create a natural, context-appropriate transcription of this video, removing speech disfluencies while carefully using the visual content as context and preserving the speaker's intent and style.
         
         IMPORTANT: 
         - If there is any audio, attempt to transcribe it even if it seems like background noise
         - Only if there is absolutely no audio at all (complete silence), return exactly "NO_AUDIO"
         - If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"
-        - You MUST return these indicators even if there is visual content/activity on the screen
+        - You MUST return these indicators even if there is visual content/activity on the screen{common_words_section}
         
         Critical instructions:
         - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)

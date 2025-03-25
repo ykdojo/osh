@@ -12,6 +12,29 @@ import google.generativeai as genai
 # Load environment variables from .env file
 load_dotenv()
 
+def load_common_words():
+    """
+    Load common words from the common_words.txt file
+    
+    Returns:
+        list: List of common words to incorporate in prompts
+    """
+    common_words = []
+    common_words_path = os.path.join(os.path.dirname(__file__), "common_words.txt")
+    
+    if os.path.exists(common_words_path):
+        try:
+            with open(common_words_path, "r") as f:
+                for line in f:
+                    # Skip comments and empty lines
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        common_words.append(line)
+        except Exception as e:
+            print(f"Error loading common words: {e}") if __debug__ else None
+    
+    return common_words
+
 def transcribe_audio(audio_file_path=None, verbose=False):
     """
     Process an audio file with Gemini and transcribe its content
@@ -79,14 +102,21 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         # Create parts for the generation
         audio_part = {"mime_type": mime_type, "data": audio_data}
         
+        # Load common words to include in the prompt
+        common_words = load_common_words()
+        common_words_section = ""
+        
+        if common_words:
+            common_words_section = "\n        IMPORTANT TERMS TO PRESERVE EXACTLY:\n        - " + "\n        - ".join(common_words) + "\n"
+        
         # Transcription prompt
-        transcription_prompt = """
+        transcription_prompt = f"""
         Create a natural, context-appropriate transcription of this audio recording, removing speech disfluencies but preserving the speaker's intent and style.
         
         IMPORTANT: 
         - If there is any audio, attempt to transcribe it even if it seems like background noise
         - Only if there is absolutely no audio at all (complete silence), return exactly "NO_AUDIO"
-        - If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"
+        - If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"{common_words_section}
         
         Critical instructions:
         - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)

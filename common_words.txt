@@ -1,0 +1,6 @@
+# Common words for transcription
+# Add technical terms, project-specific words, or names that should be preserved
+# One term per line, case-sensitive
+
+DeepSeek
+Anthropic

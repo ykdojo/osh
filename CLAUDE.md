@@ -43,6 +43,14 @@
 - This would better organize code by keeping recorder-related code in the recorders folder
 - Need to search for all import statements referencing these files to update them
 
+## Common Words Feature
+- Edit the common_words.txt file to customize how transcriptions handle specific words
+- Gemini will preserve the exact form of these words in transcriptions
+- This is useful for technical terms, brand names, product names, etc.
+- The common_words.txt file is loaded by the load_common_words() function
+- Add one word per line, blank lines and lines starting with # are ignored
+- These words are used in both audio and video transcription prompts
+
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones
 - Menu highlights: Use light dusty blue (color 74), not grayish or too vibrant blue
