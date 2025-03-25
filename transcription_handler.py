@@ -93,8 +93,8 @@ class TranscriptionHandler:
         for i in range(0, len(transcription_display), 60):
             display_lines.append(transcription_display[i:i+60])
             
-        # Copy full transcription to clipboard
-        pyperclip.copy(self.transcription)
+        # The transcription will be typed at the cursor position via type_text
+        # (type_text handles clipboard operations internally)
         
         # Display information about the transcription
         content = [
@@ -107,12 +107,12 @@ class TranscriptionHandler:
         # Add truncated transcription lines
         content.extend(display_lines)
         
-        # Add separator and info about clipboard
+        # Add separator and info about typing
         content.append("")
         content.append("")
         content.append("-----")
         content.append("")
-        content.append("Full transcription copied to clipboard.")
+        content.append("Full transcription inserted at your cursor position.")
         
         # Add note about recording file location
         if os.path.exists(recording_path):
@@ -156,7 +156,7 @@ class TranscriptionHandler:
                 "Recording information:",
                 recording_info,
                 "",
-                "Recording path copied to clipboard."
+                "Recording path inserted at your cursor position."
             ]
             
             # Add note about transcription failure
@@ -172,7 +172,6 @@ class TranscriptionHandler:
             
             # Type the recording path at the cursor position without countdown or verbose output
             if recording_path and os.path.exists(recording_path):
-                pyperclip.copy(recording_path)
                 type_text(recording_path, countdown=False, verbose=False)
         else:
             # Handle case where recording path doesn't exist
