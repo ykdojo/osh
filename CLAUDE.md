@@ -3,6 +3,7 @@
 ## Git Preferences
 - Do not include co-authorship lines in commits
 - Do not add Claude Code attribution in commit messages
+- Push commits to origin after committing changes
 
 ## Memory Instructions
 - When asked to "remember" something, add it to this CLAUDE.md file
