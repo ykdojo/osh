@@ -4,3 +4,4 @@
 
 DeepSeek
 Anthropic
+DeepSeek-R1
