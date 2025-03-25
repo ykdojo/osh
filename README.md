@@ -17,8 +17,6 @@
 - Automatic transcription of recordings using Gemini AI
 - Preservation of recording files for future reference
 - Simple cleanup script for managing recording files
-- Automatic clipboard copying and text entry of transcriptions
-- Status notifications of recording devices and progress
 
 ## Setup & Usage
 
