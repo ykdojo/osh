@@ -8,32 +8,10 @@ import os
 import sys
 from dotenv import load_dotenv
 import google.generativeai as genai
+from transcription_prompts import get_audio_transcription_prompt
 
 # Load environment variables from .env file
 load_dotenv()
-
-def load_common_words():
-    """
-    Load common words from the common_words.txt file
-    
-    Returns:
-        list: List of common words to incorporate in prompts
-    """
-    common_words = []
-    common_words_path = os.path.join(os.path.dirname(__file__), "common_words.txt")
-    
-    if os.path.exists(common_words_path):
-        try:
-            with open(common_words_path, "r") as f:
-                for line in f:
-                    # Skip comments and empty lines
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        common_words.append(line)
-        except Exception as e:
-            print(f"Error loading common words: {e}") if __debug__ else None
-    
-    return common_words
 
 def transcribe_audio(audio_file_path=None, verbose=False):
     """
@@ -102,41 +80,8 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         # Create parts for the generation
         audio_part = {"mime_type": mime_type, "data": audio_data}
         
-        # Load common words to include in the prompt
-        common_words = load_common_words()
-        common_words_section = ""
-        
-        if common_words:
-            common_words_section = "\n        IMPORTANT TERMS TO PRESERVE EXACTLY:\n        - " + "\n        - ".join(common_words) + "\n"
-        
-        # Transcription prompt
-        transcription_prompt = f"""
-        Create a natural, context-appropriate transcription of this audio recording, removing speech disfluencies but preserving the speaker's intent and style.
-        
-        IMPORTANT: 
-        - If there is any audio, attempt to transcribe it even if it seems like background noise
-        - Only if there is absolutely no audio at all (complete silence), return exactly "NO_AUDIO"
-        - If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"{common_words_section}
-        
-        Critical instructions:
-        - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)
-        - Remove repetitions, stutters, false starts, and self-corrections
-        - Eliminate verbal crutches and speech disfluencies
-        - You MUST NOT include phrases like "Here's the transcript:" or any other headers
-        - You MUST NOT add timestamps or speaker attributions 
-        - You MUST NOT include any introductory or concluding remarks
-        - You MUST begin immediately with the transcribed content
-        - Use punctuation that fits the context (question marks for questions, colons for introductions, exclamation points for emphasis, etc.)
-        - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
-        - For longer speech, use appropriate paragraph breaks for readability
-        - Preserve all technical terms, names, and specialized vocabulary accurately
-        - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
-        - Preserve the original meaning while substantially improving speech clarity
-        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
-        
-        Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
-        Make it concise, clear, and professional - as if it had been carefully edited for publication.
-        """
+        # Get transcription prompt from shared module
+        transcription_prompt = get_audio_transcription_prompt()
         
         if verbose:
             print("Sending request to Gemini 2.0 Flash Thinking...")

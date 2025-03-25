@@ -47,9 +47,15 @@
 - Edit the common_words.txt file to customize how transcriptions handle specific words
 - Gemini will preserve the exact form of these words in transcriptions
 - This is useful for technical terms, brand names, product names, etc.
-- The common_words.txt file is loaded by the load_common_words() function
+- The common_words.txt file is loaded by the load_common_words() function in transcription_prompts.py
 - Add one word per line, blank lines and lines starting with # are ignored
 - These words are used in both audio and video transcription prompts
+
+## Transcription Prompts
+- Shared prompt text is maintained in transcription_prompts.py
+- Audio and video transcription prompts are defined in this central module
+- Contains the load_common_words() function for common words inclusion
+- Provides get_audio_transcription_prompt() and get_video_transcription_prompt() functions
 
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones

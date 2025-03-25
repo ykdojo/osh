@@ -9,9 +9,7 @@ import sys
 import base64
 from dotenv import load_dotenv
 import google.generativeai as genai
-
-# Import the load_common_words function from audio_transcription
-from audio_transcription import load_common_words
+from transcription_prompts import get_video_transcription_prompt
 
 # Load environment variables from .env file
 load_dotenv()
@@ -67,45 +65,8 @@ def transcribe_video(video_file_path=None, verbose=False):
         # Create parts for the generation
         video_part = {"mime_type": "video/mp4", "data": video_data}
         
-        # Load common words to include in the prompt
-        common_words = load_common_words()
-        common_words_section = ""
-        
-        if common_words:
-            common_words_section = "\n        IMPORTANT TERMS TO PRESERVE EXACTLY:\n        - " + "\n        - ".join(common_words) + "\n"
-        
-        # Transcription prompt
-        transcription_prompt = f"""
-        Create a natural, context-appropriate transcription of this video, removing speech disfluencies while carefully using the visual content as context and preserving the speaker's intent and style.
-        
-        IMPORTANT: 
-        - If there is any audio, attempt to transcribe it even if it seems like background noise
-        - Only if there is absolutely no audio at all (complete silence), return exactly "NO_AUDIO"
-        - If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"
-        - You MUST return these indicators even if there is visual content/activity on the screen{common_words_section}
-        
-        Critical instructions:
-        - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)
-        - Remove repetitions, stutters, false starts, and self-corrections
-        - Eliminate verbal crutches and speech disfluencies
-        - You MUST NOT include phrases like "Here's the transcript:" or any other headers
-        - You MUST NOT add timestamps or speaker attributions 
-        - You MUST NOT include any introductory or concluding remarks
-        - You MUST begin immediately with the transcribed content
-        - Use punctuation that fits the context (question marks for questions, colons for introductions, exclamation points for emphasis, etc.)
-        - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
-        - For longer speech, use appropriate paragraph breaks for readability
-        - Pay careful attention to text and names visible on screen (file names, people names, place names)
-        - When the speaker refers to on-screen elements, preserve those references accurately
-        - Capture technical terms, code, and commands with 100% accuracy
-        - Preserve the original meaning while substantially improving speech clarity
-        - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
-        - Follow the specific capitalization patterns shown on-screen for names, brands, and technical terms
-        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
-        
-        Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
-        Make it concise, clear, and professional - as if it had been carefully edited for publication.
-        """
+        # Get transcription prompt from shared module
+        transcription_prompt = get_video_transcription_prompt()
         
         if verbose:
             print("Sending request to Gemini 2.0 Flash Thinking...")
