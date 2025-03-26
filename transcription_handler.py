@@ -144,10 +144,12 @@ class TranscriptionHandler:
         # Add note about recording file location
         if os.path.exists(recording_path):
             content.append("")
+            content.append("")
             content.append(f"Recording file preserved at: {recording_path}")
             
         # Add note about transcription text file
         if self.transcription_path and os.path.exists(self.transcription_path):
+            content.append("")
             content.append("")
             content.append(f"Transcription saved to: {self.transcription_path}")
         
