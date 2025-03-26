@@ -6,7 +6,6 @@ Manages the transcription process and results presentation.
 
 import os
 import threading
-import pyperclip
 import time
 from audio_transcription import transcribe_audio
 from video_transcription import transcribe_video

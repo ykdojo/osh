@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
+"""
+Module for typing text at the cursor position.
+Using clipboard-based approach with text-only preservation.
+"""
+
 import time
 import sys
 import platform
 import traceback
 from pynput.keyboard import Controller, Key, Listener
+import copykitten
 
 # Check if we're on macOS
 is_macos = platform.system() == 'Darwin'
@@ -50,7 +56,8 @@ def test_permission(verbose=False):
 
 def type_text(text, countdown=False, verbose=False):
     """
-    Type the given text at the current cursor position character by character.
+    Type the given text at the current cursor position using clipboard.
+    Preserves original text clipboard content.
     
     Args:
         text (str): The text to type
@@ -59,6 +66,16 @@ def type_text(text, countdown=False, verbose=False):
     """
     try:
         keyboard = Controller()
+        
+        # Save current clipboard text content
+        original_text = None
+        try:
+            if verbose:
+                print("Saving original clipboard text...")
+            original_text = copykitten.paste()
+        except Exception as e:
+            if verbose:
+                print(f"No text in clipboard or error: {e}")
         
         # Give user time to position cursor if countdown is enabled
         if countdown:
@@ -70,29 +87,36 @@ def type_text(text, countdown=False, verbose=False):
                 time.sleep(1)
         
         if verbose:
-            print("Now typing...")
-            print(f"About to type: '{text}'")
+            print("Now pasting text via clipboard...")
+            print(f"About to paste: '{text}'")
         
-        # Type directly character by character
-        # This avoids clipboard issues with images or other non-text content
-        for char in text:
-            # Handle special characters
-            if char == '\n':
-                keyboard.press(Key.enter)
-                keyboard.release(Key.enter)
-            elif char == '\t':
-                keyboard.press(Key.tab)
-                keyboard.release(Key.tab)
-            else:
-                keyboard.press(char)
-                keyboard.release(char)
-            
-            # Small delay to prevent missed keystrokes on some systems
-            # Using a slightly faster delay (0.003s) for better speed while maintaining reliability
-            # This is 1.5x slower than the original 0.002s delay, offering a good balance
-            time.sleep(0.003)
+        # Copy text to clipboard
+        copykitten.copy(text)
         
-        # Print debug info about registered keystrokes if verbose
+        # Paste using keyboard shortcut
+        if is_macos:
+            keyboard.press(Key.cmd)
+            keyboard.press('v')
+            keyboard.release('v')
+            keyboard.release(Key.cmd)
+        else:
+            keyboard.press(Key.ctrl)
+            keyboard.press('v')
+            keyboard.release('v')
+            keyboard.release(Key.ctrl)
+        
+        # Small delay to ensure paste completes
+        time.sleep(0.1)
+        
+        # Restore original clipboard content
+        if verbose:
+            print("Restoring original clipboard content...")
+        if original_text:
+            copykitten.copy(original_text)
+        else:
+            copykitten.clear()
+        
+        # Print debug info if verbose
         if verbose and key_events:
             print("\nDebug - Recorded key events:")
             for event in key_events[-10:]:  # Show last 10 events
@@ -101,7 +125,7 @@ def type_text(text, countdown=False, verbose=False):
         return True
     except Exception as e:
         if verbose:
-            print(f"Error while typing: {e}")
+            print(f"Error while pasting: {e}")
             traceback.print_exc()
         return False
 
