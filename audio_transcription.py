@@ -72,10 +72,12 @@ def transcribe_audio(audio_file_path=None, verbose=False):
                 print(f"Warning: Unknown audio format '{file_ext}', defaulting to {mime_type}")
         
         # Initialize the model
-        # Old model: flash-thinking experimental model
-        # model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
-        # New model: standard flash model
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        # Previous model: standard flash model
+        # model = genai.GenerativeModel("gemini-2.0-flash")
+        # Tried model: pro experimental model (was too slow)
+        # model = genai.GenerativeModel("gemini-2.5-pro-exp-03-25")
+        # Current model: flash-thinking experimental model 
+        model = genai.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
         
         # Create parts for the generation
         audio_part = {"mime_type": mime_type, "data": audio_data}
@@ -84,7 +86,7 @@ def transcribe_audio(audio_file_path=None, verbose=False):
         transcription_prompt = get_audio_transcription_prompt()
         
         if verbose:
-            print("Sending request to Gemini 2.0 Flash Thinking...")
+            print("Sending request to Gemini Flash Thinking Experimental...")
             print("\n--- Gemini Response ---")
         
         # Generate the response
