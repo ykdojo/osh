@@ -58,7 +58,7 @@ def get_common_instructions():
         - You MUST NOT add timestamps or speaker attributions 
         - You MUST NOT include any introductory or concluding remarks
         - You MUST begin immediately with the transcribed content
-        - Use punctuation that fits the context (question marks for questions, colons for introductions, exclamation points for emphasis, etc.)
+        - Use punctuation that naturally fits the context - not every phrase needs a period (question marks for questions, colons for introductions, no punctuation for fragments or headers, etc.)
         - Preserve speech tone and emotion - use exclamation marks for excitement, enthusiasm, or strong emotions, even if it's subtle or mild
         - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
         - For longer speech, use appropriate paragraph breaks for readability
