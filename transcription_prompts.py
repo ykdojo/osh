@@ -126,6 +126,8 @@ def get_video_transcription_prompt():
 {common_instructions}
         - Pay careful attention to text and names visible on screen (file names, people names, place names)
         - When the speaker refers to on-screen elements, preserve those references accurately
+        - Pay special attention to cursor position as it indicates context for insertion points and formatting
+        - Note the formatting around the cursor position as it affects how content should be structured
         - Capture technical terms, code, and commands with 100% accuracy
         - Follow the specific capitalization patterns shown on-screen for names, brands, and technical terms
 {common_goal}

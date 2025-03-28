@@ -13,6 +13,7 @@
 - This is a Textual-based Python application with Gemini AI integration
 - The app uses pynput for global keyboard shortcuts
 - Adding chmod permissions to Python files is not necessary
+- To open GitHub Desktop, use the terminal command "github" (not to be confused with "gh" which is the GitHub CLI)
 
 ## Security Rules
 - Never read, display, or access .env files or any files containing credentials/API keys
