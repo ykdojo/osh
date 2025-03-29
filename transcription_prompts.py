@@ -61,7 +61,10 @@ def get_common_instructions():
         - Use punctuation that naturally fits the context - not every phrase needs a period (question marks for questions, colons for introductions, no punctuation for fragments or headers, etc.)
         - Preserve speech tone and emotion - use exclamation marks for excitement, enthusiasm, or strong emotions, even if it's subtle or mild
         - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
-        - For longer speech, use appropriate paragraph breaks for readability
+        - Preserve contractions exactly as spoken (e.g., "I'm" stays as "I'm", not expanded to "I am")
+        - Separate paragraphs with blank lines (two line breaks) ONLY when changing to a new topic
+        - Keep closely related sentences together in the same paragraph
+        - Only create a new paragraph when there's a meaningful topic shift or change in thought direction
         - Preserve the original meaning while substantially improving speech clarity
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
         - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering"""
