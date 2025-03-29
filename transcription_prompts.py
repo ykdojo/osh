@@ -67,7 +67,9 @@ def get_common_instructions():
         - Only create a new paragraph when there's a meaningful topic shift or change in thought direction
         - Preserve the original meaning while substantially improving speech clarity
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
-        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering"""
+        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
+        - Avoid starting sentences with "But" or "And" unless it's critical for preserving the original tone or emphasis
+        - Consider combining sentences with conjunctions or rephrasing when appropriate"""
 
 def get_common_goal():
     """
