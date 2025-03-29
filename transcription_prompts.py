@@ -62,9 +62,8 @@ def get_common_instructions():
         - Preserve speech tone and emotion - use exclamation marks for excitement, enthusiasm, or strong emotions, even if it's subtle or mild
         - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
         - Preserve contractions exactly as spoken (e.g., "I'm" stays as "I'm", not expanded to "I am")
-        - Separate paragraphs with blank lines (two line breaks) ONLY when changing to a new topic
-        - Keep closely related sentences together in the same paragraph
-        - Only create a new paragraph when there's a meaningful topic shift or change in thought direction
+        - Group related sentences (1-5 sentences) into single paragraphs whenever possible
+        - Only separate paragraphs with blank lines (two line breaks) when there's a significant topic change
         - Preserve the original meaning while substantially improving speech clarity
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
         - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
