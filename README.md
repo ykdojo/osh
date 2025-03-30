@@ -89,9 +89,10 @@ OSH is the **O**pen-source terminal helper that can **S**ee your screen and **H*
   - `cleanup_recordings.sh`: Script for cleaning up recording files
   - `typing_metrics.py`: Tracks characters and words transcribed 
   - `typing_metrics_web.py`: Web dashboard showing time saved metrics
+  - `start_typing_metrics_web.sh`: Script to launch the typing metrics dashboard
   
 - **Productivity Analytics**:
   - Records character and word counts for successful transcriptions
-  - Estimates typing time saved based on average typing speed
+  - Estimates typing time saved based on configurable typing speed (default: 40 WPM)
   - Provides visualization via a simple web dashboard
-  - Access at http://127.0.0.1:5050/ after running `python typing_metrics_web.py`
+  - Access at http://127.0.0.1:5050/ after running `./start_typing_metrics_web.sh`
