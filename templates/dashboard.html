@@ -9,7 +9,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             margin: 0;
-            padding: 15px;
+            padding: 20px;
             background-color: #f5f5f7;
             color: #333;
         }
@@ -19,18 +19,17 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            margin-top: 10px;
+            margin-bottom: 30px;
         }
         .header h1 {
-            margin-bottom: 3px;
+            margin-bottom: 5px;
             color: #2c3e50;
         }
         .stats-container {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         .stat-card {
             background-color: white;
@@ -47,10 +46,6 @@
             font-size: 16px;
             font-weight: 500;
             color: #666;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
         }
         .stat-card .value {
             font-size: 36px;
@@ -62,58 +57,12 @@
             background-color: white;
             border-radius: 8px;
             padding: 20px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
         .chart-container h2 {
             margin-top: 0;
             color: #2c3e50;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .info-tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-        }
-        .info-tooltip .info-icon {
-            color: #95a5a6;
-            font-size: 16px;
-        }
-        .info-tooltip .tooltip-text {
-            visibility: hidden;
-            width: 320px;
-            background-color: #34495e;
-            color: #fff;
-            text-align: left;
-            border-radius: 6px;
-            padding: 10px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -160px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-weight: normal;
-            font-size: 14px;
-            line-height: 1.4;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .info-tooltip .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #34495e transparent transparent transparent;
-        }
-        .info-tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
         }
         .time-period-nav {
             display: flex;
@@ -176,20 +125,7 @@
         </div>
         
         <div class="chart-container">
-            <h2>
-                Estimated Typing Time Saved
-                <div class="info-tooltip">
-                    <span class="info-icon">ⓘ</span>
-                    <div class="tooltip-text">
-                        <strong>How we calculate time saved:</strong><br>
-                        • Based on your configured typing speed of <span id="chart-tooltip-wpm">--</span> WPM<br>
-                        • Average word length: 5 characters<br>
-                        • Formula: characters ÷ (WPM × 5) × 60 = minutes saved<br>
-                        • This represents the estimated time you would have spent typing this content manually<br>
-                        • Configure in config.json to match your typing speed
-                    </div>
-                </div>
-            </h2>
+            <h2>Estimated Time Saved Over Time</h2>
             <div class="time-period-nav">
                 <button class="period-btn active" data-period="daily">Daily</button>
                 <button class="period-btn" data-period="weekly">Weekly</button>
@@ -231,9 +167,6 @@
                     document.getElementById('time-saved').textContent = formatTime(data.time_saved_minutes);
                     document.getElementById('total-chars').textContent = formatNumber(data.total_chars);
                     document.getElementById('total-words').textContent = formatNumber(data.total_words);
-                    
-                    // Update WPM display in tooltip
-                    document.getElementById('chart-tooltip-wpm').textContent = data.wpm_setting;
                     
                     // Store data globally for chart updates
                     window.metricsData = data;
