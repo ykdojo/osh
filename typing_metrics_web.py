@@ -403,28 +403,35 @@ def create_templates():
         f.write(html_template)
 
 # Function to start the web server
-def start_web_server(port=5050):
+def start_web_server(port=5050, debug=True):
     """Start the Flask web server in a background thread"""
     # Create templates first
     create_templates()
     
     # Start server
-    threading.Thread(target=lambda: app.run(host='127.0.0.1', port=port, debug=False), daemon=True).start()
+    threading.Thread(target=lambda: app.run(host='127.0.0.1', port=port, debug=debug), daemon=True).start()
     print(f"Typing metrics web server started at http://127.0.0.1:{port}/")
+    if debug:
+        print("Debug mode enabled - templates will automatically reload when modified")
 
 if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="Start typing metrics web server")
     parser.add_argument("-p", "--port", type=int, default=5050, help="Port to run web server on")
+    parser.add_argument("--no-debug", action="store_true", help="Disable debug mode (disables auto-reloading)")
     
     args = parser.parse_args()
     
     # Make sure templates exist
     create_templates()
     
+    debug_mode = not args.no_debug
+    
     print(f"Starting typing metrics web server on http://127.0.0.1:{args.port}/")
+    if debug_mode:
+        print("Debug mode enabled - templates will automatically reload when modified")
     print("Press Ctrl+C to stop the server")
     
     # Start the web server in main thread
-    app.run(host='127.0.0.1', port=args.port, debug=False)
+    app.run(host='127.0.0.1', port=args.port, debug=debug_mode)
