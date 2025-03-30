@@ -47,7 +47,7 @@ class GeminiTTS:
             response_modalities=["audio"],
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Puck")
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Aoede")
                 )
             ),
         )
@@ -59,7 +59,7 @@ class GeminiTTS:
         self.audio_in_queue = None
         
         # Test text for TTS conversion
-        self.test_text = "This is a test of Gemini's text to speech capabilities. If you can hear this, the implementation is working correctly."
+        self.test_text = "This is a test of Gemini's text to speech capabilities. If you can hear this, the implementation is working correctly. The quick brown fox jumps over the lazy dog. Testing, testing, one, two, three."
 
     async def receive_audio(self, session):
         """Background task to read from websocket and write audio chunks to the queue"""
@@ -113,9 +113,10 @@ class GeminiTTS:
                 tg.create_task(self.receive_audio(session))
                 tg.create_task(self.play_audio())
                 
-                # Send the test text to Gemini for TTS conversion
+                # Send the test text to Gemini for TTS conversion with specific prompt
                 print(f"Sending test text to Gemini: '{self.test_text}'")
-                await session.send(input=self.test_text, end_of_turn=True)
+                prompt = f"Please read the following text out loud, exactly as written without any commentary or response: {self.test_text}"
+                await session.send(input=prompt, end_of_turn=True)
                 
                 # Wait for user to quit
                 while True:
