@@ -8,3 +8,4 @@ soundfile>=0.13.1
 numpy>=1.20.0
 pyperclip>=1.9.0
 copykitten>=0.3.0
+flask>=2.0.0

@@ -59,6 +59,15 @@
 - Contains the load_common_words() function for common words inclusion
 - Provides get_audio_transcription_prompt() and get_video_transcription_prompt() functions
 
+## Typing Metrics Feature
+- Tracks character and word counts from successful transcriptions
+- Stores data in typing_metrics.csv in the project directory
+- Integrates with the transcription flow via transcription_handler.py
+- Web dashboard available via typing_metrics_web.py (port 5050)
+- Uses Chart.js for professional visualization
+- Calculates time saved based on standard typing speed (40 WPM)
+- View data by day, week, or month
+
 ## Design Preferences
 - Use subtle, muted colors rather than vibrant ones
 - Menu highlights: Use light dusty blue (color 74), not grayish or too vibrant blue

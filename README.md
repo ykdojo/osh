@@ -87,3 +87,11 @@ OSH is the **O**pen-source terminal helper that can **S**ee your screen and **H*
 - **Utilities**:
   - `type_text.py`: Utility for typing transcribed text at cursor position
   - `cleanup_recordings.sh`: Script for cleaning up recording files
+  - `typing_metrics.py`: Tracks characters and words transcribed 
+  - `typing_metrics_web.py`: Web dashboard showing time saved metrics
+  
+- **Productivity Analytics**:
+  - Records character and word counts for successful transcriptions
+  - Estimates typing time saved based on average typing speed
+  - Provides visualization via a simple web dashboard
+  - Access at http://127.0.0.1:5050/ after running `python typing_metrics_web.py`

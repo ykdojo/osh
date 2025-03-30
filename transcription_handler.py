@@ -10,6 +10,7 @@ import time
 from audio_transcription import transcribe_audio
 from video_transcription import transcribe_video
 from type_text import type_text
+from typing_metrics import record_transcription
 
 class TranscriptionHandler:
     """Handles transcription of audio and video recordings"""
@@ -97,6 +98,10 @@ class TranscriptionHandler:
             
             # Save transcription to a file and show results
             self.transcription_path = self.save_transcription_text(self.transcription)
+            
+            # Record metrics for successful transcription
+            record_transcription(self.transcription)
+            
             self.show_transcription(recording_path)
         except Exception as e:
             self.set_status(f"Transcription error: {str(e)}")
