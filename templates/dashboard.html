@@ -47,6 +47,10 @@
             font-size: 16px;
             font-weight: 500;
             color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
         .stat-card .value {
             font-size: 36px;
@@ -64,6 +68,52 @@
         .chart-container h2 {
             margin-top: 0;
             color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .info-tooltip .info-icon {
+            color: #95a5a6;
+            font-size: 16px;
+        }
+        .info-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 320px;
+            background-color: #34495e;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -160px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: normal;
+            font-size: 14px;
+            line-height: 1.4;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .info-tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #34495e transparent transparent transparent;
+        }
+        .info-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
         }
         .time-period-nav {
             display: flex;
@@ -109,7 +159,18 @@
         
         <div class="stats-container">
             <div class="stat-card">
-                <h2>Total Estimated Time Saved</h2>
+                <h2>
+                    Total Estimated Time Saved
+                    <div class="info-tooltip">
+                        <span class="info-icon">ⓘ</span>
+                        <div class="tooltip-text">
+                            <strong>How we calculate time saved:</strong><br>
+                            • Based on average typing speed of 40 WPM (words per minute)<br>
+                            • Average word length: 5 characters<br>
+                            • Formula: characters ÷ (40 × 5) × 60 = minutes saved
+                        </div>
+                    </div>
+                </h2>
                 <div class="value" id="time-saved"></div>
                 <div>hours:minutes</div>
             </div>
@@ -126,7 +187,19 @@
         </div>
         
         <div class="chart-container">
-            <h2>Estimated Typing Time Saved</h2>
+            <h2>
+                Estimated Typing Time Saved
+                <div class="info-tooltip">
+                    <span class="info-icon">ⓘ</span>
+                    <div class="tooltip-text">
+                        <strong>How we calculate time saved:</strong><br>
+                        • Based on average typing speed of 40 WPM (words per minute)<br>
+                        • Average word length: 5 characters<br>
+                        • Formula: characters ÷ (40 × 5) × 60 = minutes saved<br>
+                        • This represents the estimated time you would have spent typing this content manually
+                    </div>
+                </div>
+            </h2>
             <div class="time-period-nav">
                 <button class="period-btn active" data-period="daily">Daily</button>
                 <button class="period-btn" data-period="weekly">Weekly</button>
