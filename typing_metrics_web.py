@@ -6,6 +6,7 @@ Provides a simple web dashboard to display typing time saved statistics.
 
 import os
 import csv
+import json
 import threading
 from datetime import datetime, timedelta
 from flask import Flask, render_template, jsonify
@@ -15,6 +16,34 @@ app = Flask(__name__)
 
 # Ensure templates directory exists
 os.makedirs(os.path.join(os.path.dirname(__file__), "templates"), exist_ok=True)
+
+# Load configuration
+def load_config():
+    """Load configuration from config.json or use defaults"""
+    config_path = os.path.join(os.path.dirname(__file__), "config.json")
+    
+    defaults = {
+        "typing_metrics": {
+            "wpm": 40,
+            "chars_per_word": 5
+        }
+    }
+    
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Error loading config.json: {e}. Using defaults.")
+            return defaults
+    else:
+        print("No config.json found. Using default settings.")
+        return defaults
+
+# Get WPM from config
+config = load_config()
+WPM = config["typing_metrics"]["wpm"]
+CHARS_PER_WORD = config["typing_metrics"]["chars_per_word"]
 
 # Create templates for the web dashboard
 @app.route('/')
@@ -70,7 +99,7 @@ def get_data():
             "date": day_key,
             "characters": daily_data[day_key]["characters"],
             "words": daily_data[day_key]["words"],
-            "time_saved_minutes": round(daily_data[day_key]["characters"] / (40 * 5) * 60 / 60, 1)  # 40 WPM
+            "time_saved_minutes": round(daily_data[day_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1)
         })
     
     # Group by week
@@ -89,7 +118,7 @@ def get_data():
             "week": week_key,
             "characters": weekly_data[week_key]["characters"],
             "words": weekly_data[week_key]["words"],
-            "time_saved_minutes": round(weekly_data[week_key]["characters"] / (40 * 5) * 60 / 60, 1)  # 40 WPM
+            "time_saved_minutes": round(weekly_data[week_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1)
         })
     
     # Group by month
@@ -116,13 +145,14 @@ def get_data():
             "month": month_key,
             "characters": monthly_data[month_key]["characters"],
             "words": monthly_data[month_key]["words"],
-            "time_saved_minutes": round(monthly_data[month_key]["characters"] / (40 * 5) * 60 / 60, 1)  # 40 WPM
+            "time_saved_minutes": round(monthly_data[month_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1)
         })
     
     return jsonify({
         "total_chars": total_chars,
         "total_words": total_words,
-        "time_saved_minutes": round(total_chars / (40 * 5) * 60 / 60, 1),  # 40 WPM
+        "time_saved_minutes": round(total_chars / (WPM * CHARS_PER_WORD) * 60 / 60, 1),
+        "wpm_setting": WPM,
         "daily_metrics": daily_metrics,
         "weekly_metrics": weekly_metrics,
         "monthly_metrics": monthly_metrics

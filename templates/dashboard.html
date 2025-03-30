@@ -165,9 +165,10 @@
                         <span class="info-icon">ⓘ</span>
                         <div class="tooltip-text">
                             <strong>How we calculate time saved:</strong><br>
-                            • Based on average typing speed of 40 WPM (words per minute)<br>
+                            • Based on your configured typing speed of <span id="tooltip-wpm">--</span> WPM<br>
                             • Average word length: 5 characters<br>
-                            • Formula: characters ÷ (40 × 5) × 60 = minutes saved
+                            • Formula: characters ÷ (WPM × 5) × 60 = minutes saved<br>
+                            • Configure in config.json to match your typing speed
                         </div>
                     </div>
                 </h2>
@@ -193,10 +194,11 @@
                     <span class="info-icon">ⓘ</span>
                     <div class="tooltip-text">
                         <strong>How we calculate time saved:</strong><br>
-                        • Based on average typing speed of 40 WPM (words per minute)<br>
+                        • Based on your configured typing speed of <span id="chart-tooltip-wpm">--</span> WPM<br>
                         • Average word length: 5 characters<br>
-                        • Formula: characters ÷ (40 × 5) × 60 = minutes saved<br>
-                        • This represents the estimated time you would have spent typing this content manually
+                        • Formula: characters ÷ (WPM × 5) × 60 = minutes saved<br>
+                        • This represents the estimated time you would have spent typing this content manually<br>
+                        • Configure in config.json to match your typing speed
                     </div>
                 </div>
             </h2>
@@ -241,6 +243,10 @@
                     document.getElementById('time-saved').textContent = formatTime(data.time_saved_minutes);
                     document.getElementById('total-chars').textContent = formatNumber(data.total_chars);
                     document.getElementById('total-words').textContent = formatNumber(data.total_words);
+                    
+                    // Update WPM display in tooltips
+                    document.getElementById('tooltip-wpm').textContent = data.wpm_setting;
+                    document.getElementById('chart-tooltip-wpm').textContent = data.wpm_setting;
                     
                     // Store data globally for chart updates
                     window.metricsData = data;
