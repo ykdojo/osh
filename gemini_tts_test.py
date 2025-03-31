@@ -99,8 +99,13 @@ class GeminiTTS:
             print(f"Error playing audio: {e}")
             traceback.print_exception(type(e), e, e.__traceback__)
 
-    async def run(self):
-        """Run the TTS system with the test text"""
+    async def run(self, repeat_count=3, interval=5):
+        """Run the TTS system with the test text, repeating playback at specified intervals
+        
+        Args:
+            repeat_count: Number of times to play the audio
+            interval: Seconds to wait between playbacks
+        """
         try:
             async with (
                 self.client.aio.live.connect(model=MODEL, config=self.config) as session,
@@ -113,16 +118,24 @@ class GeminiTTS:
                 tg.create_task(self.receive_audio(session))
                 tg.create_task(self.play_audio())
                 
-                # Send the test text to Gemini for TTS conversion with specific prompt
-                print(f"Sending test text to Gemini: '{self.test_text}'")
-                prompt = f"Please read the following text out loud, exactly as written without any commentary or response: {self.test_text}"
-                await session.send(input=prompt, end_of_turn=True)
+                # Play the audio multiple times with intervals
+                for i in range(repeat_count):
+                    print(f"\nPlayback {i+1}/{repeat_count}")
+                    
+                    # Send the test text to Gemini for TTS conversion with specific prompt
+                    print(f"Sending test text to Gemini: '{self.test_text}'")
+                    prompt = f"Please read the following text out loud, exactly as written without any commentary or response: {self.test_text}"
+                    await session.send(input=prompt, end_of_turn=True)
+                    
+                    # Wait for the audio to finish playing (approximate time)
+                    await asyncio.sleep(10)  # Adjust if needed based on text length
+                    
+                    # Wait for the specified interval before next playback
+                    if i < repeat_count - 1:
+                        print(f"Waiting {interval} seconds before next playback...")
+                        await asyncio.sleep(interval)
                 
-                # Wait for user to quit
-                while True:
-                    cmd = await asyncio.to_thread(input, "\nPress q to quit: ")
-                    if cmd.lower() == 'q':
-                        break
+                print("\nTest complete. Exiting.")
                 
         except asyncio.CancelledError:
             print("Operation cancelled")
@@ -136,11 +149,13 @@ class GeminiTTS:
 def main():
     parser = argparse.ArgumentParser(description="Test Gemini Text-to-Speech")
     parser.add_argument("--api-key", type=str, help="Gemini API Key (or set in .env file)")
+    parser.add_argument("--repeat", type=int, default=3, help="Number of times to play the audio")
+    parser.add_argument("--interval", type=int, default=5, help="Seconds to wait between playbacks")
     args = parser.parse_args()
     
     # Create and run the TTS system
     tts = GeminiTTS(api_key=args.api_key)
-    asyncio.run(tts.run())
+    asyncio.run(tts.run(repeat_count=args.repeat, interval=args.interval))
 
 if __name__ == "__main__":
     main()
