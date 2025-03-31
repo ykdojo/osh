@@ -98,12 +98,25 @@ def main():
     print("2. Press Shift+Alt+A (Å) to read the clipboard and play it using TTS")
     print("3. Press Ctrl+C to exit")
     
-    # Start the keyboard listener
-    with Listener(on_press=on_press) as listener:
-        try:
-            listener.join()
-        except KeyboardInterrupt:
-            print("\nExiting...")
+    # Create the keyboard listener (not starting it yet)
+    listener = None
+    
+    try:
+        # Start the keyboard listener
+        listener = Listener(on_press=on_press)
+        listener.start()
+        
+        # Keep the main thread alive
+        while listener.is_alive():
+            listener.join(0.1)  # Check every 0.1 seconds if listener is alive
+    except KeyboardInterrupt:
+        print("\nExiting...")
+    finally:
+        # Ensure listener is stopped even if an exception occurs
+        if listener and listener.is_alive():
+            print("Cleaning up keyboard listener...")
+            listener.stop()
+            time.sleep(0.1)  # Give a moment for the listener to stop cleanly
 
 if __name__ == "__main__":
     main()
