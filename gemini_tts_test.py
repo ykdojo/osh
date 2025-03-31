@@ -124,7 +124,7 @@ class GeminiTTS:
                     
                     # Send the test text to Gemini for TTS conversion with specific prompt
                     print(f"Sending test text to Gemini: '{self.test_text}'")
-                    prompt = f"Please read the following text out loud, exactly as written without any commentary or response: {self.test_text}"
+                    prompt = f"Read out loud the following text. No need to say yes, okay, and stuff like that. Just focus on reading it out loud by itself with nothing else. IMPORTANT: Skip all preambles like 'okay' or 'I'll read this'. ONLY read exactly these words: {self.test_text}"
                     await session.send(input=prompt, end_of_turn=True)
                     
                     # Wait for the audio to finish playing (approximate time)
