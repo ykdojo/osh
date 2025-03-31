@@ -5,11 +5,6 @@
 - Do not add Claude Code attribution in commit messages
 - Push commits to origin after committing changes
 
-## Code Modification Rules
-- Be less aggressive with code changes
-- Do not modify code without explicit user confirmation
-- Suggest changes first and wait for approval before implementing
-
 ## Memory Instructions
 - When asked to "remember" something, add it to this CLAUDE.md file
 - Store all important project conventions, rules, and structures here for future reference
