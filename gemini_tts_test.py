@@ -25,7 +25,7 @@ CHUNK_SIZE = 1024
 MODEL = "models/gemini-2.0-flash-exp"
 
 class GeminiTTS:
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, speed_factor=1.0):
         # Load environment variables from .env file
         load_dotenv()
         
@@ -58,6 +58,9 @@ class GeminiTTS:
         # Create audio queue for playback
         self.audio_in_queue = None
         
+        # Set speed factor for playback (1.0 = normal speed, 1.25 = 25% faster)
+        self.speed_factor = speed_factor
+        
         # Test text for TTS conversion
         self.test_text = "This is a test of Gemini's text to speech capabilities. If you can hear this, the implementation is working correctly. The quick brown fox jumps over the lazy dog. Testing, testing, one, two, three."
 
@@ -79,14 +82,18 @@ class GeminiTTS:
     async def play_audio(self):
         """Play audio from the queue"""
         try:
-            # Initialize audio playback stream
+            # Initialize audio playback stream with adjusted rate for speed control
+            adjusted_rate = int(RECEIVE_SAMPLE_RATE * self.speed_factor)
+            
             stream = await asyncio.to_thread(
                 self.pya.open,
                 format=FORMAT,
                 channels=CHANNELS,
-                rate=RECEIVE_SAMPLE_RATE,
+                rate=adjusted_rate,  # Use adjusted rate for speed control
                 output=True,
             )
+            
+            print(f"Playing audio at {self.speed_factor:.2f}x speed ({adjusted_rate} Hz)")
             
             while True:
                 # Get audio data from queue
@@ -151,10 +158,11 @@ def main():
     parser.add_argument("--api-key", type=str, help="Gemini API Key (or set in .env file)")
     parser.add_argument("--repeat", type=int, default=3, help="Number of times to play the audio")
     parser.add_argument("--interval", type=int, default=5, help="Seconds to wait between playbacks")
+    parser.add_argument("--speed", type=float, default=1.0, help="Playback speed factor (1.0=normal, 1.25=25% faster)")
     args = parser.parse_args()
     
     # Create and run the TTS system
-    tts = GeminiTTS(api_key=args.api_key)
+    tts = GeminiTTS(api_key=args.api_key, speed_factor=args.speed)
     asyncio.run(tts.run(repeat_count=args.repeat, interval=args.interval))
 
 if __name__ == "__main__":
