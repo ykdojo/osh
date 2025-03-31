@@ -110,6 +110,14 @@ class KeyboardShortcutHandler:
 
     def start(self):
         """Start listening for keyboard shortcuts"""
+        # Try to stop any existing listener first
+        if self.keyboard_listener is not None:
+            try:
+                self.keyboard_listener.stop()
+            except:
+                pass
+            self.keyboard_listener = None
+            
         # Set to track currently pressed keys
         current = set()
         
@@ -119,22 +127,37 @@ class KeyboardShortcutHandler:
         
         def on_release(key):
             return self._handle_key_release(key, current)
+        
+        try:
+            # Start the listener with a clean state
+            self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+            self.keyboard_listener.daemon = True
+            self.keyboard_listener.start()
+            self.callbacks['status']("Keyboard shortcut listener started")
+            
+            # Give a moment for the listener to initialize
+            import time
+            time.sleep(0.1)
+            
+            # Verify it actually started
+            if not self.keyboard_listener.is_alive():
+                raise Exception("Listener failed to start")
                 
-        # Only start if not already running
-        if self.keyboard_listener is None or not self.keyboard_listener.is_alive():
-            try:
-                # Start the listener
-                self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-                self.keyboard_listener.daemon = True
-                self.keyboard_listener.start()
-                self.callbacks['status']("Keyboard shortcut listener started")
-                return True
-            except Exception as e:
-                self.callbacks['status'](f"Failed to start keyboard listener: {e}")
-                return False
+            return True
+        except Exception as e:
+            self.callbacks['status'](f"Failed to start keyboard listener: {e}")
+            self.keyboard_listener = None
+            return False
     
     def stop(self):
-        """Stop the keyboard listener"""
+        """Stop the keyboard listener and release resources"""
         if self.keyboard_listener:
-            self.keyboard_listener.stop()
-            self.keyboard_listener = None
+            try:
+                self.keyboard_listener.stop()
+            except Exception as e:
+                self.callbacks['status'](f"Error stopping keyboard listener: {e}")
+            finally:
+                self.keyboard_listener = None
+                
+        # Reset our running state to ensure a clean restart if needed
+        self.is_running = True

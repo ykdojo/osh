@@ -186,8 +186,20 @@ class CursesShortcutHandler:
             # Display main screen
             self.show_main_screen()
             
+            # Track when we last verified the listener
+            last_listener_check = time.time()
+            
             # Keep application running until exit signal
             while self.is_running:
+                # Periodically check if keyboard listener is still active
+                current_time = time.time()
+                if current_time - last_listener_check > 5:  # Check every 5 seconds
+                    if self.keyboard_handler.keyboard_listener is None or not self.keyboard_handler.keyboard_listener.is_alive():
+                        self.set_status_message("Keyboard listener died - restarting...")
+                        self.start_keyboard_listener()
+                        self.set_status_message("Keyboard listener restarted")
+                    last_listener_check = current_time
+                
                 time.sleep(0.1)  # Small sleep to prevent CPU usage
         
         except KeyboardInterrupt:
