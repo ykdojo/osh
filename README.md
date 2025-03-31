@@ -17,6 +17,7 @@ OSH is the **O**pen-source terminal helper that can **S**ee your screen and **H*
 - Global keyboard shortcuts (⇧⌥X for audio, ⇧⌥Z for screen recording)
 - Audio-only or combined screen+audio recording
 - Automatic transcription of recordings using Gemini AI
+- Text-to-speech for clipboard content (⇧⌥A shortcut)
 - Preservation of recording files for future reference
 - Simple cleanup script for managing recording files
 
@@ -54,10 +55,17 @@ OSH is the **O**pen-source terminal helper that can **S**ee your screen and **H*
    ```
    This will list all recording files and ask for confirmation before deletion.
 
+6. To use the clipboard-to-speech functionality:
+   ```bash
+   bash run_clipboard_to_llm.sh
+   ```
+   Copy text to your clipboard, then press ⇧⌥A to have it read aloud using TTS.
+
 ## Keyboard Shortcuts
 
 - **⇧⌥X (Shift+Alt+X)**: Toggle audio-only recording
 - **⇧⌥Z (Shift+Alt+Z)**: Toggle screen+audio recording
+- **⇧⌥A (Shift+Alt+A)**: Read clipboard content using TTS (when clipboard_to_llm is running)
 - **Ctrl+C**: Exit the application
 
 ## Permission Requirements
@@ -90,6 +98,8 @@ OSH is the **O**pen-source terminal helper that can **S**ee your screen and **H*
   - `typing_metrics.py`: Tracks characters and words transcribed 
   - `typing_metrics_web.py`: Web dashboard showing time saved metrics
   - `start_typing_metrics_web.sh`: Script to launch the typing metrics dashboard
+  - `clipboard_to_llm.py`: Converts clipboard text to speech using TTS
+  - `run_clipboard_to_llm.sh`: Script to run the clipboard-to-speech utility
   
 - **Productivity Analytics**:
   - Records character and word counts for successful transcriptions
