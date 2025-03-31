@@ -5,6 +5,7 @@
 DeepSeek
 Anthropic
 DeepSeek-R1
+Claude Code
 CLAUDE.md
 Beyang
 Sourcegraph
