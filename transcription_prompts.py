@@ -66,6 +66,7 @@ def get_common_instructions():
         - Only separate paragraphs with blank lines (two line breaks) when there's a significant topic change
         - Preserve the original meaning while substantially improving speech clarity
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
+        - IMPORTANT: Preserve evaluative terms EXACTLY as spoken (e.g., "very good" must not be changed to "pretty good")
         - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
         - Avoid starting sentences with "But" or "And" unless it's critical for preserving the original tone or emphasis
         - Consider combining sentences with conjunctions or rephrasing when appropriate"""
