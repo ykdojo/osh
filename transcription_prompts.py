@@ -51,9 +51,7 @@ def get_common_instructions():
         str: Formatted common instructions 
     """
     return """
-        - Remove filler words (um, uh, like, you know, sort of, kind of, etc.)
-        - Remove repetitions, stutters, false starts, and self-corrections
-        - Eliminate verbal crutches and speech disfluencies
+        - Clean up speech disfluencies: remove filler words, repetitions, stutters, false starts, self-corrections, and verbal crutches
         - You MUST NOT include phrases like "Here's the transcript:" or any other headers
         - You MUST NOT add timestamps or speaker attributions 
         - You MUST NOT include any introductory or concluding remarks
