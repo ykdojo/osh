@@ -64,9 +64,8 @@ def get_common_instructions():
         - Preserve the original meaning while substantially improving speech clarity
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
         - IMPORTANT: Preserve evaluative terms EXACTLY as spoken (e.g., "very good" must not be changed to "pretty good")
-        - For numbered lists or bullet points, format them properly with one item per line and preserve their numbering
-        - Avoid starting sentences with "But" or "And" unless it's critical for preserving the original tone or emphasis
-        - Consider combining sentences with conjunctions or rephrasing when appropriate"""
+        - Format lists properly: one item per line with preserved numbering or bullets
+        - Improve sentence flow: avoid starting with "But" or "And" and combine sentences with appropriate conjunctions when needed"""
 
 def get_common_goal():
     """
