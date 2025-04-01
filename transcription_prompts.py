@@ -60,8 +60,7 @@ def get_common_instructions():
         - Preserve speech tone and emotion - use exclamation marks for excitement, enthusiasm, or strong emotions, even if it's subtle or mild
         - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
         - Preserve contractions exactly as spoken (e.g., "I'm" stays as "I'm", not expanded to "I am")
-        - Group related sentences (1-5 sentences) into single paragraphs whenever possible
-        - Only separate paragraphs with blank lines (two line breaks) when there's a significant topic change
+        - Structure paragraphs naturally: group 1-5 related sentences together and only add paragraph breaks for significant topic changes
         - Preserve the original meaning while substantially improving speech clarity
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
         - IMPORTANT: Preserve evaluative terms EXACTLY as spoken (e.g., "very good" must not be changed to "pretty good")
