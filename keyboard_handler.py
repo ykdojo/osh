@@ -23,28 +23,18 @@ class KeyboardShortcutHandler:
         self.keyboard_listener = None
         self.is_running = True
         self.callbacks = callback_functions
-        
-        # Define the hotkey combinations
-        self.AUDIO_SHORTCUT = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('x')}
-        self.VIDEO_SHORTCUT = {keyboard.Key.shift, keyboard.Key.alt, keyboard.KeyCode.from_char('z')}
-        self.EXIT_COMBO = {keyboard.Key.ctrl_l, keyboard.KeyCode.from_char('c')}
     
-    def _handle_keypress(self, key, current):
+    def _handle_keypress(self, key):
         """
         Handle key press events
         
         Args:
             key: The key that was pressed
-            current: Set of currently pressed keys
             
         Returns:
             True to continue listening, False to stop
         """
         try:
-            # Add key to current set if it's part of any shortcut
-            if key in self.AUDIO_SHORTCUT or key in self.VIDEO_SHORTCUT or key in self.EXIT_COMBO:
-                current.add(key)
-            
             # Check for special character "˛" which is produced by Shift+Alt+X on Mac (audio shortcut)
             if isinstance(key, keyboard.KeyCode) and hasattr(key, 'char') and key.char == "˛":
                 self.callbacks['status']("Audio shortcut triggered: Shift+Alt+X (˛)")
@@ -69,16 +59,8 @@ class KeyboardShortcutHandler:
                 self.callbacks['toggle']("video")
                 return True
             
-            # Check for key combinations
-            elif all(k in current for k in self.AUDIO_SHORTCUT):
-                self.callbacks['status']("Audio shortcut triggered: ⇧⌥X")
-                self.callbacks['toggle']("audio")
-                return True
-            elif all(k in current for k in self.VIDEO_SHORTCUT):
-                self.callbacks['status']("Video shortcut triggered: ⇧⌥Z")
-                self.callbacks['toggle']("video")
-                return True
-            elif all(k in current for k in self.EXIT_COMBO):
+            # Direct check for Ctrl+C similar to clipboard_to_llm.py
+            if key == keyboard.Key.ctrl_l and hasattr(key, 'vk'):
                 self.callbacks['status']("Exiting...")
                 self.is_running = False
                 return False  # Stop listener
@@ -88,24 +70,17 @@ class KeyboardShortcutHandler:
         
         return True  # Continue listening
 
-    def _handle_key_release(self, key, current):
+    def _handle_key_release(self, key):
         """
         Handle key release events
         
         Args:
             key: The key that was released
-            current: Set of currently pressed keys
             
         Returns:
             True to continue listening, False to stop
         """
-        try:
-            # Remove key from current pressed keys
-            if key in current:
-                current.remove(key)
-        except Exception as e:
-            self.callbacks['status'](f"Error in keyboard release: {e}")
-        
+        # We're not tracking keys anymore, just return running state
         return self.is_running  # Continue listening if app is running
 
     def start(self):
@@ -118,15 +93,12 @@ class KeyboardShortcutHandler:
                 pass
             self.keyboard_listener = None
             
-        # Set to track currently pressed keys
-        current = set()
-        
-        # Create handler functions with closure over current set
+        # Create handler functions
         def on_press(key):
-            return self._handle_keypress(key, current)
+            return self._handle_keypress(key)
         
         def on_release(key):
-            return self._handle_key_release(key, current)
+            return self._handle_key_release(key)
         
         try:
             # Start the listener with a clean state

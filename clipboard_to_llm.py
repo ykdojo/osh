@@ -38,8 +38,8 @@ def play_tts(text):
     
     async def tts_task():
         try:
-            # Create TTS instance with text from clipboard and 1.2x speed
-            tts = GeminiTTS(speed_factor=1.1)
+            # Create TTS instance with text from clipboard and 1.15x speed
+            tts = GeminiTTS(speed_factor=1.15)
             # Override the test text with our clipboard content
             tts.test_text = text
             # Play once and exit
