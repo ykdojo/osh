@@ -207,11 +207,30 @@ class CursesShortcutHandler:
             self.refresh_screen()
         
         finally:
-            # Clean up
-            self.keyboard_handler.stop()
+            # Properly clean up all resources
+            try:
+                # Clean up keyboard handler
+                if hasattr(self, 'keyboard_handler') and self.keyboard_handler:
+                    self.set_status_message("Cleaning up keyboard listener...")
+                    self.keyboard_handler.stop()
+                    time.sleep(0.1)  # Give a moment for keyboard listener to stop cleanly
                 
-            # Clean up curses
-            self.cleanup_curses()
+                # Clean up recording session if any is active
+                if hasattr(self, 'recording_session') and self.recording_session:
+                    if self.recording_session.is_recording:
+                        self.set_status_message("Stopping active recording...")
+                        self.recording_session.stop()
+                        time.sleep(0.1)
+                
+                # Clean up transcription handler
+                if hasattr(self, 'transcription_handler') and self.transcription_handler:
+                    self.set_status_message("Cleaning up transcription handler...")
+                    # Add any necessary cleanup for transcription_handler
+            except Exception as e:
+                self.set_status_message(f"Error during cleanup: {e}")
+            finally:
+                # Always clean up curses at the end
+                self.cleanup_curses()
 
 if __name__ == "__main__":
     app = CursesShortcutHandler()

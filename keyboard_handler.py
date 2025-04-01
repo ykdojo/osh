@@ -150,7 +150,15 @@ class KeyboardShortcutHandler:
             return False
     
     def stop(self):
-        """Stop the keyboard listener"""
+        """Stop the keyboard listener and release resources"""
         if self.keyboard_listener:
-            self.keyboard_listener.stop()
-            self.keyboard_listener = None
+            try:
+                self.keyboard_listener.stop()
+            except Exception as e:
+                if self.callbacks and 'status' in self.callbacks:
+                    self.callbacks['status'](f"Error stopping keyboard listener: {e}")
+            finally:
+                self.keyboard_listener = None
+                
+        # Reset our running state to ensure a clean restart if needed
+        self.is_running = False
