@@ -10,3 +10,4 @@ CLAUDE.md
 Beyang
 Sourcegraph
 YK Sugi
+Amp
