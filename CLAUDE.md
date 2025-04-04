@@ -15,6 +15,12 @@
 - Adding chmod permissions to Python files is not necessary
 - To open GitHub Desktop, use the terminal command "github" (not to be confused with "gh" which is the GitHub CLI)
 
+## Environment Setup
+- Python scripts should use the virtual environment in the venv directory
+- Use `source activate_env.sh` to activate the virtual environment
+- The application requires a .env file with API keys (never commit or open this file)
+- A .env.sample file should exist to show the required environment variables without real values
+
 ## Security Rules
 - Never read, display, or access .env files or any files containing credentials/API keys
 - Do not access or display sensitive information such as API keys, passwords, or tokens
