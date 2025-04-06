@@ -168,7 +168,9 @@ class GeminiTTS:
                         retry_count += 1
                         if retry_count >= max_retries:
                             print(f"Failed after {max_retries} attempts. Last error: {e}")
-                            break
+                            print("Exiting due to repeated failures.")
+                            # Force exit directly from here
+                            os._exit(1)  # This is a hard exit that bypasses normal cleanup
                         else:
                             print(f"Error encountered: {e}. Retrying ({retry_count}/{max_retries})...")
                             await asyncio.sleep(1)  # Brief pause before retry
@@ -199,7 +201,15 @@ def main():
     
     # Create and run the TTS system
     tts = GeminiTTS(api_key=args.api_key, speed_factor=args.speed)
-    asyncio.run(tts.run(repeat_count=args.repeat, interval=args.interval))
+    try:
+        asyncio.run(tts.run(repeat_count=args.repeat, interval=args.interval))
+    except RuntimeError as e:
+        if "Maximum retry attempts reached" in str(e):
+            print("Terminating program due to maximum retry failures.")
+            sys.exit(1)
+        else:
+            print(f"Error: {e}")
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()
