@@ -81,11 +81,13 @@ class GeminiTTS:
                     reason = getattr(e, 'reason', 'Internal error encountered')
                     print(f"\nConnection error from Gemini API: {reason}")
                     # Make sure to raise an exception that can be caught by the retry logic
-                    raise Exception(f"Connection error: {reason}")
+                    # Re-raise with enough context to be caught by outer try/except
+                    raise RuntimeError(f"Connection error: {reason}") from e
                 except Exception as e:
                     print(f"\nError receiving audio from Gemini API: {e}")
                     traceback.print_exc(limit=2)
-                    break
+                    # Re-raise all exceptions so they're caught by retry logic
+                    raise RuntimeError(f"API error: {e}") from e
                     
                 # If model is interrupted, clear the queue
                 while not self.audio_in_queue.empty():
@@ -93,6 +95,8 @@ class GeminiTTS:
         except Exception as e:
             print(f"\nFatal error in receive_audio task: {e}")
             traceback.print_exc(limit=2)
+            # Re-raise to ensure TaskGroup catches this
+            raise
 
     async def play_audio(self):
         """Play audio from the queue"""
