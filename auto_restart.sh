@@ -18,6 +18,6 @@ while true; do
         exit 130
     fi
     
-    echo "Script exited with code $EXIT_CODE. Restarting in 3 seconds..."
-    sleep 3
+    echo "Script exited with code $EXIT_CODE. Restarting in 1 second..."
+    sleep 1
 done
