@@ -82,7 +82,6 @@ class GeminiTTS:
                     print(f"\nConnection error from Gemini API: {reason}")
                     # Make sure to raise an exception that can be caught by the retry logic
                     raise Exception(f"Connection error: {reason}")
-                    break
                 except Exception as e:
                     print(f"\nError receiving audio from Gemini API: {e}")
                     traceback.print_exc(limit=2)
