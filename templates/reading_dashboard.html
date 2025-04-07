@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Typing Time Saved</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
+    <title>Reading Time Saved</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -51,7 +51,7 @@
         .stat-card .value {
             font-size: 36px;
             font-weight: 700;
-            color: #3498db;
+            color: #e67e22;
             margin: 10px 0;
         }
         .chart-container {
@@ -81,9 +81,9 @@
             transition: all 0.2s;
         }
         .time-period-nav button.active {
-            background-color: #3498db;
+            background-color: #e67e22;
             color: white;
-            border-color: #3498db;
+            border-color: #e67e22;
         }
         .time-period-nav button:hover:not(.active) {
             background-color: #e9ecef;
@@ -98,59 +98,111 @@
             font-size: 14px;
             margin-top: 30px;
         }
+        .dashboard-links {
+            text-align: center;
+            margin-top: 30px;
+            padding: 10px;
+        }
+        .dashboard-links a {
+            display: inline-block;
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        .dashboard-links a:hover {
+            background-color: #f8f9fa;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Typing Time Saved</h1>
-            <p>Statistics on time saved using transcription</p>
+            <h1>Reading Metrics Dashboard</h1>
+            <p>Statistics on text-to-speech conversions</p>
         </div>
         
         <div class="stats-container">
             <div class="stat-card">
-                <h2>Total Estimated Time Saved</h2>
-                <div class="value" id="time-saved"></div>
-                <div>hours:minutes</div>
+                <h2>
+                    Pages Read
+                    <span class="tooltip">ⓘ
+                        <span class="tooltiptext">Estimated based on 250 words per page</span>
+                    </span>
+                </h2>
+                <div class="value" id="pages-read"></div>
+                <div>pages</div>
             </div>
             <div class="stat-card">
-                <h2>Characters Transcribed</h2>
+                <h2>Words Processed</h2>
+                <div class="value" id="total-words"></div>
+                <div>words</div>
+            </div>
+            <div class="stat-card">
+                <h2>Characters Processed</h2>
                 <div class="value" id="total-chars"></div>
                 <div>characters</div>
             </div>
             <div class="stat-card">
-                <h2>Words Transcribed</h2>
-                <div class="value" id="total-words"></div>
-                <div>words</div>
+                <h2>Paragraphs Read</h2>
+                <div class="value" id="total-paragraphs"></div>
+                <div>paragraphs</div>
             </div>
         </div>
         
         <div class="chart-container">
-            <h2>Estimated Time Saved Over Time</h2>
+            <h2>Reading Volume Over Time</h2>
             <div class="time-period-nav">
                 <button class="period-btn active" data-period="daily">Daily</button>
                 <button class="period-btn" data-period="weekly">Weekly</button>
                 <button class="period-btn" data-period="monthly">Monthly</button>
             </div>
             <div class="chart-wrapper">
-                <canvas id="timeChart"></canvas>
+                <canvas id="readingChart"></canvas>
             </div>
         </div>
-        
         
         <div class="dashboard-links">
             <a href="/">Typing Metrics Dashboard</a>
             <a href="/reading">Reading Metrics Dashboard</a>
         </div>
         
-<div class="refresh-note">
+        <div class="refresh-note">
             Data refreshes automatically when you open this page. Close and reopen to see the latest metrics.
         </div>
     </div>
     
     <script>
         // Chart.js initialization
-        let timeChart;
+        let readingChart;
         let currentPeriod = 'daily';
         
         // Fetch data and initialize
@@ -167,13 +219,14 @@
         });
         
         function fetchDataAndUpdateUI() {
-            fetch('/data')
+            fetch('/reading/data')
                 .then(response => response.json())
                 .then(data => {
                     // Update summary statistics
-                    document.getElementById('time-saved').textContent = formatTime(data.time_saved_minutes);
-                    document.getElementById('total-chars').textContent = formatNumber(data.total_chars);
+                    document.getElementById('pages-read').textContent = formatNumber(data.pages_read);
                     document.getElementById('total-words').textContent = formatNumber(data.total_words);
+                    document.getElementById('total-chars').textContent = formatNumber(data.total_chars);
+                    document.getElementById('total-paragraphs').textContent = formatNumber(data.total_paragraphs);
                     
                     // Store data globally for chart updates
                     window.metricsData = data;
@@ -196,33 +249,33 @@
             if (currentPeriod === 'daily') {
                 chartData = data.daily_metrics;
                 labels = chartData.map(item => formatDate(item.date));
-                values = chartData.map(item => item.time_saved_minutes);
+                values = chartData.map(item => item.words);
             } else if (currentPeriod === 'weekly') {
                 chartData = data.weekly_metrics;
                 labels = chartData.map(item => formatWeek(item.week));
-                values = chartData.map(item => item.time_saved_minutes);
+                values = chartData.map(item => item.words);
             } else {
                 chartData = data.monthly_metrics;
                 labels = chartData.map(item => formatMonth(item.month));
-                values = chartData.map(item => item.time_saved_minutes);
+                values = chartData.map(item => item.words);
             }
             
             // Destroy previous chart instance if it exists
-            if (timeChart) {
-                timeChart.destroy();
+            if (readingChart) {
+                readingChart.destroy();
             }
             
             // Create new chart
-            const ctx = document.getElementById('timeChart').getContext('2d');
-            timeChart = new Chart(ctx, {
+            const ctx = document.getElementById('readingChart').getContext('2d');
+            readingChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Time Saved (minutes)',
+                        label: 'Words Read',
                         data: values,
-                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                        borderColor: 'rgba(52, 152, 219, 1)',
+                        backgroundColor: 'rgba(230, 126, 34, 0.7)',
+                        borderColor: 'rgba(230, 126, 34, 1)',
                         borderWidth: 1
                     }]
                 },
@@ -234,7 +287,7 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Minutes'
+                                text: 'Words'
                             }
                         }
                     }
@@ -245,12 +298,6 @@
         // Helper formatting functions
         function formatNumber(num) {
             return num.toLocaleString();
-        }
-        
-        function formatTime(minutes) {
-            const hours = Math.floor(minutes / 60);
-            const mins = Math.round(minutes % 60);
-            return `${hours}:${mins.toString().padStart(2, '0')}`;
         }
         
         function formatDate(dateStr) {

@@ -3,5 +3,9 @@
     "wpm": 65,
     "chars_per_word": 5,
     "comment": "WPM (words per minute) represents your average typing speed. Default for average typist is 40, tech professionals average 65-70."
+  },
+  "reading_metrics": {
+    "words_per_page": 250,
+    "comment": "Words per page is an average used to calculate how many book pages you've consumed."
   }
 }

@@ -17,10 +17,57 @@ import subprocess
 import asyncio
 import os
 import threading
+import csv
+from datetime import datetime
 from pynput.keyboard import Controller, Key, Listener, KeyCode
 
 # Import Gemini TTS functionality
 from gemini_tts_test import GeminiTTS
+
+# Constants for reading metrics
+READING_METRICS_CSV = os.path.join(os.path.dirname(__file__), "reading_metrics.csv")
+
+def ensure_csv_exists(csv_path):
+    """
+    Create CSV file with headers if it doesn't exist
+    
+    Args:
+        csv_path (str): Path to CSV file
+    """
+    if not os.path.exists(csv_path):
+        os.makedirs(os.path.dirname(csv_path), exist_ok=True)
+        with open(csv_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['timestamp', 'characters', 'words', 'paragraphs'])
+
+def record_reading(text):
+    """
+    Record metrics for text-to-speech conversion
+    
+    Args:
+        text (str): The text that was converted to speech
+    """
+    # Skip empty text
+    if not text:
+        return
+        
+    # Calculate metrics
+    char_count = len(text)
+    word_count = len(text.split())
+    paragraph_count = text.count('\n\n') + 1  # Count double newlines plus one for first paragraph
+    
+    # Get current timestamp
+    timestamp = datetime.now().isoformat()
+    
+    # Ensure CSV exists
+    ensure_csv_exists(READING_METRICS_CSV)
+    
+    # Write to CSV file
+    with open(READING_METRICS_CSV, 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([timestamp, char_count, word_count, paragraph_count])
+    
+    print(f"Recorded reading metrics: {char_count} chars, {word_count} words, {paragraph_count} paragraphs")
 
 def get_clipboard_text():
     """Get text from clipboard using pbpaste on macOS"""
@@ -78,6 +125,9 @@ def on_press(key):
             print(clipboard_content)
             print("=== End of Clipboard Content ===")
             print(f"(Length: {len(clipboard_content)} characters)")
+            
+            # Record reading metrics
+            record_reading(clipboard_content)
             
             # Play the clipboard content using TTS
             print("Playing clipboard content using TTS...")
