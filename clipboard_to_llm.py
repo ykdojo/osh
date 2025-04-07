@@ -42,8 +42,8 @@ def play_tts(text):
             tts = GeminiTTS(speed_factor=1.15)
             # Override the test text with our clipboard content
             tts.test_text = text
-            # Play once and exit, with retry logic enabled (max 5 retries)
-            await tts.run(repeat_count=1, interval=0, max_retries=5)
+            # Play once and exit, with retry logic enabled (max 3 retries)
+            await tts.run(repeat_count=1, interval=0, max_retries=3)
         except Exception as e:
             print(f"Error playing TTS: {e}")
     

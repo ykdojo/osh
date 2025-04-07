@@ -125,7 +125,7 @@ class GeminiTTS:
             print(f"Error playing audio: {e}")
             traceback.print_exception(type(e), e, e.__traceback__)
 
-    async def run(self, repeat_count=3, interval=5, max_retries=5):
+    async def run(self, repeat_count=3, interval=5, max_retries=3):
         """Run the TTS system with the test text, repeating playback at specified intervals
         
         Args:
