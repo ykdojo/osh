@@ -10,18 +10,7 @@
 - The WPM setting (currently set to 40 WPM) should be displayed in a tooltip
 - Check commit history for recent changes that may have removed this functionality
 
-### 2. Fix Keyboard Listeners Inconsistency
-- Keyboard shortcuts sometimes stop working after a while
-- Sometimes only work in the terminal where the app is running, not globally
-- Related files:
-  - `/Users/yk/osh/keyboard_handler.py` - Main keyboard shortcut handling implementation
-- Issues to investigate:
-  - Possible memory leaks or resource contention
-  - Thread-related issues in the keyboard listener
-  - System permissions for keyboard access
-  - Consider implementing periodic reconnection of listeners
-
-### 3. Implement Speech Speed Adjustment
+### 2. Implement Speech Speed Adjustment
 - Need to add ability to speed up speech without changing pitch
 - Already have a working implementation in `/Users/yk/osh/speed_up_audio.py`
 - Need to incorporate this into the clipboard-to-LLM feature
@@ -30,3 +19,15 @@
   - `/Users/yk/osh/gemini_tts_test.py` - Handles TTS functionality
 - Current implementation already has a speed_factor parameter in GeminiTTS (set to 1.1)
 - Need to add user controls to adjust speed during runtime
+
+### 3. Add Reading Metrics Visualization
+- Create visualization for clipboard-to-LLM feature
+- Track and visualize text-to-speech conversion metrics
+- Related files:
+  - `/Users/yk/osh/clipboard_to_llm.py` - Feature to track metrics from
+  - `/Users/yk/osh/typing_metrics_web.py` - Similar implementation exists for typing
+- Use interesting content-based metrics such as:
+  - Number of pages converted to speech
+  - Number of books (equivalent) listened to
+  - Number of paragraphs processed
+- Include filtering options (day/week/month) similar to typing metrics
