@@ -98,6 +98,31 @@
             font-size: 14px;
             margin-top: 30px;
         }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -122,6 +147,16 @@
                 <h2>Words Transcribed</h2>
                 <div class="value" id="total-words"></div>
                 <div>words</div>
+            </div>
+            <div class="stat-card">
+                <h2>
+                    Pages Equivalent
+                    <span class="tooltip">ⓘ
+                        <span class="tooltiptext">Based on <span id="words-per-page"></span> words per page</span>
+                    </span>
+                </h2>
+                <div class="value" id="total-pages"></div>
+                <div>pages</div>
             </div>
         </div>
         
@@ -168,6 +203,8 @@
                     document.getElementById('time-saved').textContent = formatTime(data.time_saved_minutes);
                     document.getElementById('total-chars').textContent = formatNumber(data.total_chars);
                     document.getElementById('total-words').textContent = formatNumber(data.total_words);
+                    document.getElementById('total-pages').textContent = formatNumber(data.total_pages);
+                    document.getElementById('words-per-page').textContent = formatNumber(data.words_per_page);
                     
                     // Store data globally for chart updates
                     window.metricsData = data;
