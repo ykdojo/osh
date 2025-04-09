@@ -171,7 +171,7 @@
                 <h2>
                     Pages Read
                     <span class="tooltip">ⓘ
-                        <span class="tooltiptext">Estimated based on 325 words per page (non-fiction average)</span>
+                        <span class="tooltiptext">Estimated based on <span id="words-per-page"></span> words per page</span>
                     </span>
                 </h2>
                 <div class="value" id="pages-read"></div>
@@ -228,6 +228,7 @@
                     document.getElementById('total-words').textContent = formatNumber(data.total_words);
                     document.getElementById('total-chars').textContent = formatNumber(data.total_chars);
                     document.getElementById('total-paragraphs').textContent = formatNumber(data.total_paragraphs);
+                    document.getElementById('words-per-page').textContent = formatNumber(data.words_per_page_setting);
                     
                     // Store data globally for chart updates
                     window.metricsData = data;

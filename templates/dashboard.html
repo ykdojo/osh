@@ -153,7 +153,12 @@
         
         <div class="stats-container">
             <div class="stat-card">
-                <h2>Total Estimated Time Saved</h2>
+                <h2>
+                    Total Estimated Time Saved
+                    <span class="tooltip">ⓘ
+                        <span class="tooltiptext">Based on <span id="wpm-setting"></span> WPM typing speed</span>
+                    </span>
+                </h2>
                 <div class="value" id="time-saved"></div>
                 <div>hours:minutes</div>
             </div>
@@ -229,6 +234,7 @@
                     document.getElementById('total-words').textContent = formatNumber(data.total_words);
                     document.getElementById('total-pages').textContent = formatNumber(data.total_pages);
                     document.getElementById('words-per-page').textContent = formatNumber(data.words_per_page);
+                    document.getElementById('wpm-setting').textContent = formatNumber(data.wpm_setting);
                     
                     // Store data globally for chart updates
                     window.metricsData = data;
