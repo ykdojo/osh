@@ -89,6 +89,27 @@
         .time-period-nav button:hover:not(.active) {
             background-color: #e9ecef;
         }
+        .display-toggle {
+            display: flex;
+        }
+        .display-toggle button {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 6px 14px;
+            margin: 0 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .display-toggle button.active {
+            background-color: #e67e22;
+            color: white;
+            border-color: #e67e22;
+        }
+        .display-toggle button:hover:not(.active) {
+            background-color: #e9ecef;
+        }
         .chart-wrapper {
             height: 300px;
             position: relative;
@@ -180,7 +201,13 @@
         </div>
         
         <div class="chart-container">
-            <h2>Reading Volume Over Time</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Reading Volume Over Time</h2>
+                <div class="display-toggle">
+                    <button class="toggle-btn active" data-display="words">Words</button>
+                    <button class="toggle-btn" data-display="pages">Pages</button>
+                </div>
+            </div>
             <div class="time-period-nav">
                 <button class="period-btn active" data-period="daily">Daily</button>
                 <button class="period-btn" data-period="weekly">Weekly</button>
@@ -205,6 +232,7 @@
         // Chart.js initialization
         let readingChart;
         let currentPeriod = 'daily';
+        let currentDisplay = 'words'; // Default display mode
         
         // Fetch data and initialize
         fetchDataAndUpdateUI();
@@ -215,6 +243,16 @@
                 document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
                 currentPeriod = button.getAttribute('data-period');
+                updateChart();
+            });
+        });
+        
+        // Add event listeners to display toggle buttons
+        document.querySelectorAll('.toggle-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentDisplay = button.getAttribute('data-display');
                 updateChart();
             });
         });
@@ -246,21 +284,32 @@
             let chartData;
             let labels;
             let values;
+            const wordsPerPage = data.words_per_page_setting;
             
             // Select appropriate data based on current time period
             if (currentPeriod === 'daily') {
                 chartData = data.daily_metrics;
                 labels = chartData.map(item => formatDate(item.date));
-                values = chartData.map(item => item.words);
+                values = currentDisplay === 'words' 
+                    ? chartData.map(item => item.words)
+                    : chartData.map(item => parseFloat((item.words / wordsPerPage).toFixed(1)));
             } else if (currentPeriod === 'weekly') {
                 chartData = data.weekly_metrics;
                 labels = chartData.map(item => formatWeek(item.week));
-                values = chartData.map(item => item.words);
+                values = currentDisplay === 'words' 
+                    ? chartData.map(item => item.words)
+                    : chartData.map(item => parseFloat((item.words / wordsPerPage).toFixed(1)));
             } else {
                 chartData = data.monthly_metrics;
                 labels = chartData.map(item => formatMonth(item.month));
-                values = chartData.map(item => item.words);
+                values = currentDisplay === 'words' 
+                    ? chartData.map(item => item.words)
+                    : chartData.map(item => parseFloat((item.words / wordsPerPage).toFixed(1)));
             }
+            
+            // Determine label and y-axis text based on display mode
+            const displayLabel = currentDisplay === 'words' ? 'Words Read' : 'Pages Read';
+            const yAxisTitle = currentDisplay === 'words' ? 'Words' : 'Pages';
             
             // Destroy previous chart instance if it exists
             if (readingChart) {
@@ -274,7 +323,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Words Read',
+                        label: displayLabel,
                         data: values,
                         backgroundColor: 'rgba(230, 126, 34, 0.7)',
                         borderColor: 'rgba(230, 126, 34, 1)',
@@ -289,7 +338,7 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Words'
+                                text: yAxisTitle
                             }
                         }
                     }
