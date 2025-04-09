@@ -56,13 +56,8 @@ READING_METRICS_CSV = os.path.join(os.path.dirname(__file__), "reading_metrics.c
 # Create templates for the web dashboard
 @app.route('/')
 def index():
-    """Redirect to the typing metrics dashboard"""
-    return redirect(url_for('typing_dashboard'))
-
-@app.route('/typing')
-def typing_dashboard():
-    """Render the typing dashboard page"""
-    return render_template('dashboard.html')
+    """Redirect to the reading dashboard"""
+    return redirect(url_for('reading_dashboard'))
 
 @app.route('/reading')
 def reading_dashboard():
@@ -231,41 +226,11 @@ def create_mock_data():
                 existing_data.add(timestamp)
 
 # Function to update dashboard.html to add navigation link
-def update_dashboard_with_link():
-    """Update the main dashboard.html to add a link to the reading dashboard"""
-    dashboard_path = os.path.join(os.path.dirname(__file__), "templates", "dashboard.html")
-    
-    if os.path.exists(dashboard_path):
-        with open(dashboard_path, 'r') as f:
-            content = f.read()
-            
-        # Check if the dashboard links section already exists
-        if '<div class="dashboard-links">' not in content:
-            # Find the place to add the links section (before the refresh note)
-            refresh_note_index = content.find('<div class="refresh-note">')
-            
-            if refresh_note_index > 0:
-                # Create the links section HTML
-                links_html = '''
-        <div class="dashboard-links">
-            <a href="/">Typing Metrics Dashboard</a>
-            <a href="/reading">Reading Metrics Dashboard</a>
-        </div>
-        
-'''
-                # Insert the links section before the refresh note
-                modified_content = content[:refresh_note_index] + links_html + content[refresh_note_index:]
-                
-                # Write the modified content back to the file
-                with open(dashboard_path, 'w') as f:
-                    f.write(modified_content)
+# Removed update_dashboard_with_link function as it's no longer needed
 
 # Function to start the web server
-def start_web_server(port=5050, debug=True):
+def start_web_server(port=5051, debug=True):
     """Start the Flask web server in a background thread"""
-    # Update the main dashboard with navigation links
-    update_dashboard_with_link()
-    
     # Ensure mock data exists
     if not os.path.exists(READING_METRICS_CSV):
         create_mock_data()
@@ -280,13 +245,10 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="Start reading metrics web server")
-    parser.add_argument("-p", "--port", type=int, default=5050, help="Port to run web server on")
+    parser.add_argument("-p", "--port", type=int, default=5051, help="Port to run web server on")
     parser.add_argument("--no-debug", action="store_true", help="Disable debug mode (disables auto-reloading)")
     
     args = parser.parse_args()
-    
-    # Ensure templates exist
-    update_dashboard_with_link()
     
     # Create mock data if needed
     if not os.path.exists(READING_METRICS_CSV):
