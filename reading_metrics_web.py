@@ -25,7 +25,7 @@ def load_config():
     
     defaults = {
         "reading_metrics": {
-            "words_per_page": 250
+            "words_per_page": 325
         }
     }
     
