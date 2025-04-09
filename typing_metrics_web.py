@@ -40,10 +40,12 @@ def load_config():
         print("No config.json found. Using default settings.")
         return defaults
 
-# Get WPM from config
+# Get config values
 config = load_config()
 WPM = config["typing_metrics"]["wpm"]
 CHARS_PER_WORD = config["typing_metrics"]["chars_per_word"]
+# Get words per page from reading_metrics if available, or use default
+WORDS_PER_PAGE = config.get("reading_metrics", {}).get("words_per_page", 325)
 
 # Create templates for the web dashboard
 @app.route('/')
@@ -61,6 +63,9 @@ def get_data():
         return jsonify({
             "total_chars": 0,
             "total_words": 0,
+            "total_pages": 0,
+            "time_saved_minutes": 0,
+            "words_per_page": WORDS_PER_PAGE,
             "daily_metrics": [],
             "weekly_metrics": [],
             "monthly_metrics": []
@@ -148,11 +153,16 @@ def get_data():
             "time_saved_minutes": round(monthly_data[month_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1)
         })
     
+    # Calculate total pages
+    total_pages = round(total_words / WORDS_PER_PAGE, 1)
+    
     return jsonify({
         "total_chars": total_chars,
         "total_words": total_words,
+        "total_pages": total_pages,
         "time_saved_minutes": round(total_chars / (WPM * CHARS_PER_WORD) * 60 / 60, 1),
         "wpm_setting": WPM,
+        "words_per_page": WORDS_PER_PAGE,
         "daily_metrics": daily_metrics,
         "weekly_metrics": weekly_metrics,
         "monthly_metrics": monthly_metrics
@@ -260,6 +270,31 @@ def create_templates():
             font-size: 14px;
             margin-top: 30px;
         }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -284,6 +319,16 @@ def create_templates():
                 <h2>Words Transcribed</h2>
                 <div class="value" id="total-words"></div>
                 <div>words</div>
+            </div>
+            <div class="stat-card">
+                <h2>
+                    Pages Equivalent
+                    <span class="tooltip">ⓘ
+                        <span class="tooltiptext">Based on <span id="words-per-page"></span> words per page</span>
+                    </span>
+                </h2>
+                <div class="value" id="total-pages"></div>
+                <div>pages</div>
             </div>
         </div>
         
@@ -330,6 +375,8 @@ def create_templates():
                     document.getElementById('time-saved').textContent = formatTime(data.time_saved_minutes);
                     document.getElementById('total-chars').textContent = formatNumber(data.total_chars);
                     document.getElementById('total-words').textContent = formatNumber(data.total_words);
+                    document.getElementById('total-pages').textContent = formatNumber(data.total_pages);
+                    document.getElementById('words-per-page').textContent = formatNumber(data.words_per_page);
                     
                     // Store data globally for chart updates
                     window.metricsData = data;
