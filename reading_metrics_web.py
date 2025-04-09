@@ -225,8 +225,8 @@ def create_mock_data():
                 writer.writerow([timestamp, chars, words, paragraphs])
                 existing_data.add(timestamp)
 
-# Function to update dashboard.html to add navigation link
-# Removed update_dashboard_with_link function as it's no longer needed
+# Reading dashboard template already exists in templates/reading_dashboard.html
+# We don't need to recreate it each time since it has been customized
 
 # Function to start the web server
 def start_web_server(port=5051, debug=True):
