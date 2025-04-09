@@ -61,6 +61,7 @@ def get_common_instructions():
         - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
         - Preserve contractions exactly as spoken (e.g., "I'm" stays as "I'm", not expanded to "I am")
         - IMPORTANT: Structure paragraphs properly: all sentences in the same paragraph MUST be together with NO single line breaks between them; use DOUBLE line breaks (empty line) between separate paragraphs
+        - CRITICAL: Focus on meaning rather than timing - if a speaker pauses mid-sentence to think and then continues, treat it as a single coherent sentence
         - Preserve the original meaning while substantially improving speech clarity
         - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
         - IMPORTANT: Preserve evaluative terms EXACTLY as spoken (e.g., "very good" must not be changed to "pretty good")
