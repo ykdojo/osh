@@ -104,7 +104,8 @@ def get_data():
             "date": day_key,
             "characters": daily_data[day_key]["characters"],
             "words": daily_data[day_key]["words"],
-            "time_saved_minutes": round(daily_data[day_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1)
+            "time_saved_minutes": round(daily_data[day_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1),
+            "pages": round(daily_data[day_key]["words"] / WORDS_PER_PAGE, 1)
         })
     
     # Group by week
@@ -123,7 +124,8 @@ def get_data():
             "week": week_key,
             "characters": weekly_data[week_key]["characters"],
             "words": weekly_data[week_key]["words"],
-            "time_saved_minutes": round(weekly_data[week_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1)
+            "time_saved_minutes": round(weekly_data[week_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1),
+            "pages": round(weekly_data[week_key]["words"] / WORDS_PER_PAGE, 1)
         })
     
     # Group by month
@@ -150,7 +152,8 @@ def get_data():
             "month": month_key,
             "characters": monthly_data[month_key]["characters"],
             "words": monthly_data[month_key]["words"],
-            "time_saved_minutes": round(monthly_data[month_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1)
+            "time_saved_minutes": round(monthly_data[month_key]["characters"] / (WPM * CHARS_PER_WORD) * 60 / 60, 1),
+            "pages": round(monthly_data[month_key]["words"] / WORDS_PER_PAGE, 1)
         })
     
     # Calculate total pages

@@ -20,8 +20,7 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            margin-top: -10px;
+            margin-bottom: 30px;
         }
         .header h1 {
             margin-bottom: 5px;
@@ -89,27 +88,30 @@
         .time-period-nav button:hover:not(.active) {
             background-color: #e9ecef;
         }
+        .display-toggle {
+            display: flex;
+        }
+        .display-toggle button {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 6px 14px;
+            margin: 0 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .display-toggle button.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        .display-toggle button:hover:not(.active) {
+            background-color: #e9ecef;
+        }
         .chart-wrapper {
             height: 300px;
             position: relative;
-        }
-        .dashboard-links {
-            text-align: center;
-            margin-top: 30px;
-            padding: 10px;
-        }
-        .dashboard-links a {
-            display: inline-block;
-            color: #2c3e50;
-            text-decoration: none;
-            padding: 8px 16px;
-            margin: 0 8px;
-            border-radius: 4px;
-            border: 1px solid #dee2e6;
-            transition: all 0.2s;
-        }
-        .dashboard-links a:hover {
-            background-color: #f8f9fa;
         }
         .refresh-note {
             text-align: center;
@@ -141,6 +143,24 @@
         .tooltip:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
+        }
+        .dashboard-links {
+            text-align: center;
+            margin-top: 30px;
+            padding: 10px;
+        }
+        .dashboard-links a {
+            display: inline-block;
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        .dashboard-links a:hover {
+            background-color: #f8f9fa;
         }
     </style>
 </head>
@@ -185,7 +205,13 @@
         </div>
         
         <div class="chart-container">
-            <h2>Estimated Time Saved Over Time</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Typing Metrics Over Time</h2>
+                <div class="display-toggle">
+                    <button class="toggle-btn active" data-display="minutes">Minutes</button>
+                    <button class="toggle-btn" data-display="pages">Pages</button>
+                </div>
+            </div>
             <div class="time-period-nav">
                 <button class="period-btn active" data-period="daily">Daily</button>
                 <button class="period-btn" data-period="weekly">Weekly</button>
@@ -210,6 +236,7 @@
         // Chart.js initialization
         let timeChart;
         let currentPeriod = 'daily';
+        let currentDisplay = 'minutes'; // Default display mode
         
         // Fetch data and initialize
         fetchDataAndUpdateUI();
@@ -220,6 +247,16 @@
                 document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
                 currentPeriod = button.getAttribute('data-period');
+                updateChart();
+            });
+        });
+        
+        // Add event listeners to display toggle buttons
+        document.querySelectorAll('.toggle-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentDisplay = button.getAttribute('data-display');
                 updateChart();
             });
         });
@@ -252,21 +289,32 @@
             let chartData;
             let labels;
             let values;
+            const wordsPerPage = data.words_per_page;
             
             // Select appropriate data based on current time period
             if (currentPeriod === 'daily') {
                 chartData = data.daily_metrics;
                 labels = chartData.map(item => formatDate(item.date));
-                values = chartData.map(item => item.time_saved_minutes);
+                values = currentDisplay === 'minutes' 
+                    ? chartData.map(item => item.time_saved_minutes)
+                    : chartData.map(item => item.pages);
             } else if (currentPeriod === 'weekly') {
                 chartData = data.weekly_metrics;
                 labels = chartData.map(item => formatWeek(item.week));
-                values = chartData.map(item => item.time_saved_minutes);
+                values = currentDisplay === 'minutes' 
+                    ? chartData.map(item => item.time_saved_minutes)
+                    : chartData.map(item => item.pages);
             } else {
                 chartData = data.monthly_metrics;
                 labels = chartData.map(item => formatMonth(item.month));
-                values = chartData.map(item => item.time_saved_minutes);
+                values = currentDisplay === 'minutes' 
+                    ? chartData.map(item => item.time_saved_minutes)
+                    : chartData.map(item => item.pages);
             }
+            
+            // Determine label and y-axis text based on display mode
+            const displayLabel = currentDisplay === 'minutes' ? 'Time Saved (minutes)' : 'Pages Typed';
+            const yAxisTitle = currentDisplay === 'minutes' ? 'Minutes' : 'Pages';
             
             // Destroy previous chart instance if it exists
             if (timeChart) {
@@ -280,7 +328,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Time Saved (minutes)',
+                        label: displayLabel,
                         data: values,
                         backgroundColor: 'rgba(52, 152, 219, 0.7)',
                         borderColor: 'rgba(52, 152, 219, 1)',
@@ -295,7 +343,7 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Minutes'
+                                text: yAxisTitle
                             }
                         }
                     }
