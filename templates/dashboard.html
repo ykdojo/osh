@@ -92,6 +92,24 @@
             height: 300px;
             position: relative;
         }
+        .dashboard-links {
+            text-align: center;
+            margin-top: 30px;
+            padding: 10px;
+        }
+        .dashboard-links a {
+            display: inline-block;
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        .dashboard-links a:hover {
+            background-color: #f8f9fa;
+        }
         .refresh-note {
             text-align: center;
             color: #888;
@@ -170,6 +188,11 @@
             <div class="chart-wrapper">
                 <canvas id="timeChart"></canvas>
             </div>
+        </div>
+        
+        <div class="dashboard-links">
+            <a href="/">Typing Metrics Dashboard</a>
+            <a href="http://127.0.0.1:5051/reading">Reading Metrics Dashboard</a>
         </div>
         
         <div class="refresh-note">
