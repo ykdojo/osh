@@ -20,6 +20,8 @@
 - Use `source activate_env.sh` to activate the virtual environment
 - The application requires a .env file with API keys (never commit or open this file)
 - A .env.sample file should exist to show the required environment variables without real values
+- Before installing new Python packages or running pip commands, always activate the virtual environment first
+- When adding new dependencies, always update requirements.txt
 
 ## Security Rules
 - Never read, display, or access .env files or any files containing credentials/API keys
