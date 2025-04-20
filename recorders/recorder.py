@@ -154,12 +154,12 @@ def record_screen(output_file, duration, framerate=30, resolution='1280x720', sc
             'ffmpeg', '-y',
             '-f', 'avfoundation',
             '-framerate', str(framerate),
-            '-video_size', resolution,
             '-capture_cursor', '1',
             '-pix_fmt', 'uyvy422',
             '-t', str(duration),
             '-i', f"{screen_index}",
             '-vcodec', 'h264',
+            '-vf', f'scale={resolution}', # Add scaling filter to force resolution
             '-preset', 'ultrafast',
             '-crf', '22',
             output_file
