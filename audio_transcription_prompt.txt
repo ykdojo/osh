@@ -1,0 +1,43 @@
+Create a natural, context-appropriate transcription of this audio recording, removing speech disfluencies but preserving the speaker's intent and style.
+
+IMPORTANT: 
+- If there is any audio, attempt to transcribe it even if it seems like background noise
+- Only if there is absolutely no audio at all (complete silence), return exactly "NO_AUDIO"
+- If you've confirmed there is audio but cannot detect any speech, return "NO_AUDIBLE_SPEECH"
+
+        IMPORTANT TERMS TO PRESERVE EXACTLY:
+        - DeepSeek
+        - Anthropic
+        - DeepSeek-R1
+        - Claude Code
+        - CLAUDE.md
+        - Beyang
+        - Sourcegraph
+        - YK Sugi
+        - Amp
+
+Critical instructions:
+
+        - Clean up speech disfluencies: remove filler words, repetitions, stutters, false starts, self-corrections, and verbal crutches
+        - You MUST NOT include phrases like "Here's the transcript:" or any other headers
+        - You MUST NOT add timestamps or speaker attributions 
+        - You MUST NOT include any introductory or concluding remarks
+        - You MUST begin immediately with the transcribed content
+        - Use punctuation that naturally fits the context - not every phrase needs a period (question marks for questions, colons for introductions, no punctuation for fragments or headers, etc.)
+        - Preserve speech tone and emotion - use exclamation marks for excitement, enthusiasm, or strong emotions, even if it's subtle or mild
+        - If the speaker uses incomplete sentences or fragments, preserve them when they're intentional
+        - Preserve contractions exactly as spoken (e.g., "I'm" stays as "I'm", not expanded to "I am")
+        - IMPORTANT: Structure paragraphs properly: all sentences in the same paragraph MUST be together with NO single line breaks between them; use DOUBLE line breaks (empty line) between separate paragraphs
+        - CRITICAL: Prioritize semantic meaning over pauses when structuring text:
+          * If a speaker pauses mid-sentence and then continues the same thought, format as a single coherent sentence
+          * Make paragraph breaks based on topic/subject changes, not based on pauses or timing in speech
+          * Never insert line breaks that split a logical thought unit
+        - Preserve the original meaning while substantially improving speech clarity
+        - ALWAYS maintain the exact capitalization of proper names and terms (e.g., "Claude Code" with both capital Cs)
+        - IMPORTANT: Preserve evaluative terms EXACTLY as spoken (e.g., "very good" must not be changed to "pretty good")
+        - Format lists properly: one item per line with preserved numbering or bullets
+        - Improve sentence flow: avoid starting with "But" or "And" and combine sentences with appropriate conjunctions when needed
+        - Preserve all technical terms, names, and specialized vocabulary accurately
+
+        Your goal is to produce a transcript that reads as if it were written text rather than spoken words.
+        Make it concise, clear, and professional - as if it had been carefully edited for publication.
